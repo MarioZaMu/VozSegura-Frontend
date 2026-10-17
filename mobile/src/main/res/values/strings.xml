@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Voz Segura</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_contacts">Contactos</string>
+    <string name="nav_history">Historial</string>
+    <string name="nav_settings">Ajustes</string>
+
+    <!-- Placeholder screens (phase 1) -->
+    <string name="home_title">Voz Segura</string>
+    <string name="home_subtitle">Tu reloj está protegido</string>
+    <string name="contacts_title">Contactos de confianza</string>
+    <string name="history_title">Historial de alertas</string>
+    <string name="settings_title">Ajustes</string>
+    <string name="placeholder_coming_soon">Disponible en una próxima fase</string>
+</resources>
