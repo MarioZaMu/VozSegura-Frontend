@@ -20,7 +20,7 @@ Ambas apps comparten `applicationId = com.vozsegura.app`, requisito de la Wearab
 
 - Android Studio Rabbit 2026.1 (JDK incluido)
 - SDK 37, emulador **Wear OS Large Round** y un celular/emulador con Google Play
-- Backend: [voz-segura-backend](https://github.com/MarioZaMu/voz-segura-backend)
+- Backend: [voz-segura-backend](https://github.com/MarioZaMu/VozSegura-backend)
 
 ## Cómo correr
 
