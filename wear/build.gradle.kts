@@ -50,6 +50,8 @@ dependencies {
     implementation(libs.play.services.wearable)
     implementation(project(":shared"))
     implementation(libs.wear.compose.navigation)
+    implementation(libs.androidx.wear)
+    implementation(libs.androidx.core.ktx)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.test.manifest)

@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">Voz Segura</string>
+    <!-- Deliberately generic: on the watch the app must look like a plain clock. -->
+    <string name="app_name">Hora</string>
 </resources>

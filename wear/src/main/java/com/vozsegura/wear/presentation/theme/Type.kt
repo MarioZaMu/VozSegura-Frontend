@@ -20,7 +20,10 @@ val Poppins = FontFamily(
 /** Wear Material 3 scale (sizes tuned by Google for 1.2-2 inch screens) rendered in Poppins. */
 internal val BrandTypography = Typography(defaultFontFamily = Poppins)
 
-/** Watch face styles, sized for a ~200dp round screen (responsive scaling arrives in phase 3). */
+/**
+ * Watch face styles at the reference size ([WatchDimens.referenceScreen]). The watch face
+ * scales them linearly with the real screen width so proportions match on every device.
+ */
 object WatchFaceType {
     val Time = TextStyle(
         fontFamily = Poppins,
@@ -29,10 +32,31 @@ object WatchFaceType {
         lineHeight = 52.sp,
         letterSpacing = (-0.02).em,
     )
+    /** Ambient uses a lighter weight: fewer lit pixels, less power and burn-in. */
+    val TimeAmbient = Time.copy(fontWeight = FontWeight.Normal)
+    /** "a. m." / "p. m." next to the hour when the device uses 12-hour time. */
+    val Period = TextStyle(
+        fontFamily = Poppins,
+        fontWeight = FontWeight.Medium,
+        fontSize = 12.sp,
+        lineHeight = 14.sp,
+    )
     val Date = TextStyle(
         fontFamily = Poppins,
         fontWeight = FontWeight.Medium,
         fontSize = 14.sp,
         lineHeight = 18.sp,
     )
+    val Complication = TextStyle(
+        fontFamily = Poppins,
+        fontWeight = FontWeight.Medium,
+        fontSize = 12.sp,
+        lineHeight = 14.sp,
+    )
 }
+
+/** Returns this style with every size multiplied by [factor]. */
+fun TextStyle.scaled(factor: Float): TextStyle = copy(
+    fontSize = fontSize * factor,
+    lineHeight = lineHeight * factor,
+)
