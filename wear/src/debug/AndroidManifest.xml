@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Debug only: Android 17 blocks the local subnet, and the emulator reaches the dev
+         backend on the host at 10.0.2.2. Release builds talk to Vercel over the internet. -->
+    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
+
+    <application android:networkSecurityConfig="@xml/network_security_config" />
+</manifest>

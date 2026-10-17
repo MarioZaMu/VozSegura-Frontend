@@ -1,6 +1,15 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+}
+
+// Backend URL and shared token come from local.properties (git-ignored), never from the repo:
+//   vozsegura.backendUrl=https://<project>.vercel.app
+//   vozsegura.alertApiToken=<same value as ALERT_API_TOKEN in Vercel>
+val localProperties = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use(::load)
 }
 
 android {
@@ -15,6 +24,9 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "1.0"
+
+        buildConfigField("String", "BACKEND_URL", "\"${localProperties.getProperty("vozsegura.backendUrl", "")}\"")
+        buildConfigField("String", "ALERT_API_TOKEN", "\"${localProperties.getProperty("vozsegura.alertApiToken", "")}\"")
 
     }
 

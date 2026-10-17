@@ -3,6 +3,7 @@ package com.vozsegura.wear.alert
 import com.vozsegura.shared.model.AlertConfig
 import com.vozsegura.shared.model.AlertLocation
 import com.vozsegura.shared.model.AlertPayload
+import com.vozsegura.shared.model.CancelPayload
 import com.vozsegura.wear.gesture.HiddenGesture
 import com.vozsegura.wear.haptics.Haptics
 import kotlinx.coroutines.CoroutineScope
@@ -32,7 +33,8 @@ class AlertController(
     private val session: AlertSession,
     private val locationProvider: LocationProvider,
     private val recorder: AudioClipRecorder,
-    private val alertMessage: () -> String = { AlertConfig.DEFAULT_ALERT_MESSAGE },
+    /** Current user settings (contacts, message); synced from the phone in phase 6. */
+    private val config: () -> AlertConfig = { AlertConfig() },
     private val graceMs: Long = GRACE_MS,
     private val retryMs: Long = RETRY_MS,
     private val resetMs: Long = RESET_MS,
@@ -72,8 +74,8 @@ class AlertController(
             AlertEffect.StartResetTimer -> startTimer(resetMs, AlertEvent.ResetElapsed)
             AlertEffect.StartDelivery -> startDelivery()
             AlertEffect.SendCancellation -> {
-                val id = alertId
-                scope.launch { gateway.sendCancellation(id) }
+                val payload = CancelPayload(alertId, contactChatIds())
+                scope.launch { gateway.sendCancellation(payload) }
             }
             AlertEffect.StopAll -> stopAll()
         }
@@ -91,12 +93,13 @@ class AlertController(
 
     private fun startDelivery() {
         val id = alertId
+        val chatIds = contactChatIds()
         // Record once per alert; delivery retries must not restart the clip.
         if (captureJob == null) {
             captureJob = scope.launch {
                 recorder.record(id)?.let { clip ->
                     // Privacy: once the backend has the clip, no copy stays on the watch.
-                    if (gateway.sendAudio(id, clip)) clip.delete()
+                    if (gateway.sendAudio(id, chatIds, clip)) clip.delete()
                 }
                 captureFinished = true
                 endSessionIfIdle()
@@ -107,13 +110,16 @@ class AlertController(
             val payload = AlertPayload(
                 alertId = id,
                 createdAtEpochMs = createdAtEpochMs,
-                message = alertMessage(),
+                message = config().alertMessage,
                 location = location?.await(),
+                contactChatIds = chatIds,
             )
             val delivered = gateway.sendAlert(payload)
             dispatch(if (delivered) AlertEvent.DeliverySucceeded else AlertEvent.DeliveryFailed)
         }
     }
+
+    private fun contactChatIds() = config().contacts.map { it.telegramChatId }
 
     private fun stopAll() {
         timerJob?.cancel()

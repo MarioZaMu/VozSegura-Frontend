@@ -34,6 +34,23 @@ Desde terminal:
 ./gradlew :wear:assembleDebug :mobile:assembleDebug
 ```
 
+### Conectar con el backend
+
+Sin configuración, el reloj usa un backend simulado (`FakeAlertGateway`, se ve en Logcat).
+Para enviar alertas reales, agregar a `local.properties` (no se sube a git):
+
+```properties
+vozsegura.backendUrl=https://tu-proyecto.vercel.app
+vozsegura.alertApiToken=el-mismo-ALERT_API_TOKEN-del-backend
+```
+
+Para probar con el servidor local del backend (`npm run serve`) desde el emulador, usar
+`http://10.0.2.2:3000` y, como Android 17 bloquea la red local, conceder el permiso una vez:
+
+```bash
+adb shell pm grant com.vozsegura.app android.permission.ACCESS_LOCAL_NETWORK
+```
+
 ## Uso de IA
 
 La IA **nunca** decide cuándo activar la alerta: siempre la dispara el usuario. Solo interviene

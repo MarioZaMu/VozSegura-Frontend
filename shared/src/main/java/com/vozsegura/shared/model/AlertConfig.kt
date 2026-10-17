@@ -7,7 +7,8 @@ import kotlinx.serialization.Serializable
 data class AlertConfig(
     val contacts: List<TrustedContact> = emptyList(),
     val alertMessage: String = DEFAULT_ALERT_MESSAGE,
-    val demoMode: Boolean = true,
+    /** Simulates network, AI and delivery (phase 9 toggle). */
+    val demoMode: Boolean = false,
 ) {
     companion object {
         const val DEFAULT_ALERT_MESSAGE = "Necesito ayuda. Esta es mi ubicación actual."

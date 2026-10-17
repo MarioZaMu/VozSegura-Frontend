@@ -22,4 +22,12 @@ data class AlertPayload(
     val createdAtEpochMs: Long,
     val message: String,
     val location: AlertLocation? = null,
+    /** Telegram chat ids of the trusted contacts; the backend also adds its DEFAULT_CHAT_IDS. */
+    val contactChatIds: List<String> = emptyList(),
+)
+
+@Serializable
+data class CancelPayload(
+    val alertId: String,
+    val contactChatIds: List<String> = emptyList(),
 )

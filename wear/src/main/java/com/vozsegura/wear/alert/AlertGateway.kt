@@ -2,6 +2,7 @@ package com.vozsegura.wear.alert
 
 import android.util.Log
 import com.vozsegura.shared.model.AlertPayload
+import com.vozsegura.shared.model.CancelPayload
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -12,10 +13,10 @@ interface AlertGateway {
     suspend fun sendAlert(payload: AlertPayload): Boolean
 
     /** Uploads the audio clip for the AI summary. Best effort, after the alert went out. */
-    suspend fun sendAudio(alertId: String, clip: File): Boolean
+    suspend fun sendAudio(alertId: String, contactChatIds: List<String>, clip: File): Boolean
 
     /** Tells contacts the alert was cancelled ("estoy bien"). Best effort. */
-    suspend fun sendCancellation(alertId: String)
+    suspend fun sendCancellation(payload: CancelPayload)
 }
 
 /**
@@ -38,16 +39,16 @@ class FakeAlertGateway(
         return delivered
     }
 
-    override suspend fun sendAudio(alertId: String, clip: File): Boolean {
+    override suspend fun sendAudio(alertId: String, contactChatIds: List<String>, clip: File): Boolean {
         delay(latencyMs)
         Log.i(TAG, "sendAudio alertId=$alertId bytes=${clip.length()}")
         return true
     }
 
-    override suspend fun sendCancellation(alertId: String) {
+    override suspend fun sendCancellation(payload: CancelPayload) {
         delay(latencyMs)
         attempts = 0
-        Log.i(TAG, "sendCancellation alertId=$alertId")
+        Log.i(TAG, "sendCancellation alertId=${payload.alertId}")
     }
 
     private companion object {
