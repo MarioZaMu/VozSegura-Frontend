@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +22,7 @@ import com.vozsegura.mobile.ui.screens.ContactsScreen
 import com.vozsegura.mobile.ui.screens.HistoryScreen
 import com.vozsegura.mobile.ui.screens.HomeScreen
 import com.vozsegura.mobile.ui.screens.SettingsScreen
+import com.vozsegura.mobile.ui.theme.VsColors
 
 @Composable
 fun VozSeguraApp() {
@@ -30,7 +32,7 @@ fun VozSeguraApp() {
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
+            NavigationBar(containerColor = VsColors.Surface) {
                 TopLevelDestination.entries.forEach { destination ->
                     val selected = currentDestination?.hasRoute(destination.route::class) == true
                     NavigationBarItem(
@@ -52,6 +54,13 @@ fun VozSeguraApp() {
                             )
                         },
                         label = { Text(stringResource(destination.labelRes)) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = VsColors.PrimaryLight,
+                            selectedTextColor = VsColors.TextPrimary,
+                            indicatorColor = VsColors.SurfaceElevated,
+                            unselectedIconColor = VsColors.TextSecondary,
+                            unselectedTextColor = VsColors.TextSecondary,
+                        ),
                     )
                 }
             }

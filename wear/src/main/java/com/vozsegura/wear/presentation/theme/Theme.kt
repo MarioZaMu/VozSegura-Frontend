@@ -3,15 +3,15 @@ package com.vozsegura.wear.presentation.theme
 import androidx.compose.runtime.Composable
 import androidx.wear.compose.material3.MaterialTheme
 
+/**
+ * Brand theme for watch setup screens. The watch face does not depend on it: it reads
+ * [StealthColors] and [WatchFaceType] directly so a theme change can never leak magenta into it.
+ */
 @Composable
-fun VozSeguraTheme(
-    content: @Composable () -> Unit
-) {
-    /**
-     * Empty theme to customize for your app.
-     * See: https://developer.android.com/jetpack/compose/designsystems/custom
-     */
+fun VozSeguraTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        content = content
+        colorScheme = BrandColorScheme,
+        typography = BrandTypography,
+        content = content,
     )
 }

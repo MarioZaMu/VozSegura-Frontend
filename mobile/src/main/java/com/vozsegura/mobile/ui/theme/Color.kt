@@ -1,11 +1,32 @@
 package com.vozsegura.mobile.ui.theme
 
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import com.vozsegura.shared.design.VozSeguraPalette
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+/** Phone color tokens, wrapped from the shared palette. */
+object VsColors {
+    val Background = Color(VozSeguraPalette.BACKGROUND)
+    val Surface = Color(VozSeguraPalette.SURFACE)
+    val SurfaceElevated = Color(VozSeguraPalette.SURFACE_ELEVATED)
+    val Primary = Color(VozSeguraPalette.PRIMARY)
+    val PrimaryLight = Color(VozSeguraPalette.PRIMARY_LIGHT)
+    val TextPrimary = Color(VozSeguraPalette.TEXT_PRIMARY)
+    val TextSecondary = Color(VozSeguraPalette.TEXT_SECONDARY)
+    val Outline = Color(VozSeguraPalette.OUTLINE)
+    val Danger = Color(VozSeguraPalette.DANGER)
+    val DangerStrong = Color(VozSeguraPalette.DANGER_STRONG)
+    val Success = Color(VozSeguraPalette.SUCCESS)
+    val Warning = Color(VozSeguraPalette.WARNING)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+    val RingGradient = listOf(
+        Color(VozSeguraPalette.GRADIENT_START),
+        Color(VozSeguraPalette.GRADIENT_END),
+    )
+    val ButtonGradient = Brush.horizontalGradient(
+        listOf(
+            Color(VozSeguraPalette.BUTTON_GRADIENT_START),
+            Color(VozSeguraPalette.BUTTON_GRADIENT_END),
+        ),
+    )
+}

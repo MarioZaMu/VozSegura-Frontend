@@ -12,11 +12,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material3.Text
 import androidx.wear.compose.ui.tooling.preview.WearPreviewDevices
+import com.vozsegura.wear.presentation.theme.StealthColors
+import com.vozsegura.wear.presentation.theme.WatchFaceType
 import kotlinx.coroutines.delay
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -43,20 +42,19 @@ fun WatchFaceScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black),
+            .background(StealthColors.Background),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = now.format(timeFormatter),
-            color = Color.White,
-            fontSize = 44.sp,
-            fontWeight = FontWeight.Bold,
+            style = WatchFaceType.Time,
+            color = StealthColors.TextPrimary,
         )
         Text(
             text = now.format(dateFormatter),
-            color = Color(0xFF9A93A8),
-            fontSize = 14.sp,
+            style = WatchFaceType.Date,
+            color = StealthColors.TextSecondary,
         )
     }
 }

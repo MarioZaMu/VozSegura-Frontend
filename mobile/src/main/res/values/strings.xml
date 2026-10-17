@@ -14,4 +14,27 @@
     <string name="history_title">Historial de alertas</string>
     <string name="settings_title">Ajustes</string>
     <string name="placeholder_coming_soon">Disponible en una próxima fase</string>
+
+    <!-- Alert states -->
+    <string name="alert_state_idle">En reposo</string>
+    <string name="alert_state_activated">Activada</string>
+    <string name="alert_state_sent">Enviada</string>
+    <string name="alert_state_error">Error al enviar</string>
+    <string name="alert_state_cancelled">Cancelada</string>
+
+    <!-- Design catalog (phase 2, temporary) -->
+    <string name="catalog_title">Sistema de diseño</string>
+    <string name="catalog_subtitle">Vista previa de colores, tipografía y componentes</string>
+    <string name="catalog_ring_value">3</string>
+    <string name="catalog_ring_caption">contactos listos</string>
+    <string name="catalog_states">Estados de la alerta</string>
+    <string name="catalog_buttons">Botones</string>
+    <string name="catalog_colors">Colores</string>
+    <string name="catalog_type">Tipografía</string>
+    <string name="action_test_gesture">Probar gesto</string>
+    <string name="action_edit_message">Editar mensaje</string>
+    <string name="action_cancel_alert">Cancelar alerta</string>
+    <string name="cd_microphone">Micrófono</string>
+    <string name="cd_location">Ubicación</string>
+    <string name="cd_cancel">Cancelar</string>
 </resources>

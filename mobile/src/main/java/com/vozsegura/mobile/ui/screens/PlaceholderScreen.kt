@@ -30,11 +30,9 @@ internal fun PlaceholderScreen(title: String, subtitle: String) {
     }
 }
 
+/** Phase 2: shows the design catalog so the system can be checked on a real device. */
 @Composable
-fun HomeScreen() = PlaceholderScreen(
-    title = stringResource(R.string.home_title),
-    subtitle = stringResource(R.string.home_subtitle),
-)
+fun HomeScreen() = DesignCatalogScreen()
 
 @Composable
 fun ContactsScreen() = PlaceholderScreen(
