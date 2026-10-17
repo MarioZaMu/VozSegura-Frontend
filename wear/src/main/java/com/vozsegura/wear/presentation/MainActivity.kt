@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.wear.ambient.AmbientLifecycleObserver
+import com.vozsegura.wear.WearApplication
 import com.vozsegura.wear.presentation.ambient.AmbientMode
 import com.vozsegura.wear.presentation.ambient.AmbientState
 import com.vozsegura.wear.presentation.navigation.WearApp
@@ -40,8 +41,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         // Supporting ambient keeps our face on screen when the wrist drops, instead of the system face.
         lifecycle.addObserver(AmbientLifecycleObserver(this, ambientCallback))
+        val app = application as WearApplication
         setContent {
-            WearApp(ambientState = AmbientState(ambientMode.value, ambientTick.intValue))
+            WearApp(
+                ambientState = AmbientState(ambientMode.value, ambientTick.intValue),
+                onHiddenGesture = app.alertController::onGesture,
+                hapticSignals = app.haptics.played,
+            )
         }
     }
 }

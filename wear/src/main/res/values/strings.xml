@@ -1,4 +1,10 @@
 <resources>
     <!-- Deliberately generic: on the watch the app must look like a plain clock. -->
     <string name="app_name">Hora</string>
+
+    <!-- Debug-only haptic echo (the emulator cannot vibrate). Never shown in release builds. -->
+    <string name="debug_haptic_detected">tic · detectado (4 s para cancelar)</string>
+    <string name="debug_haptic_sent">tic tic · enviado</string>
+    <string name="debug_haptic_error">vibración larga · error, reintentando</string>
+    <string name="debug_haptic_cancelled">tic tic tic · cancelado</string>
 </resources>
