@@ -15,23 +15,28 @@ import com.vozsegura.wear.haptics.HapticSignal
 import com.vozsegura.wear.presentation.ambient.AmbientState
 import com.vozsegura.wear.presentation.ambient.LocalAmbientState
 import com.vozsegura.wear.presentation.debug.HapticEchoOverlay
+import com.vozsegura.wear.presentation.setup.SetupScreen
 import com.vozsegura.wear.presentation.theme.VozSeguraTheme
 import com.vozsegura.wear.presentation.watchface.WatchFaceScreen
 import kotlinx.coroutines.flow.Flow
 
-/** Routes of the watch app. The watch face is the only visible screen by design. */
+/** Routes of the watch app. After first-run setup, the watch face is the only screen by design. */
 object WearRoutes {
+    const val SETUP = "setup"
     const val WATCH_FACE = "watch_face"
 }
 
 @Composable
 fun WearApp(
     ambientState: AmbientState,
+    showSetup: Boolean,
+    onSetupDone: () -> Unit,
     onHiddenGesture: (HiddenGesture) -> Unit,
     hapticSignals: Flow<HapticSignal>,
 ) {
     // Destination lambdas are captured once, so route through an always-current reference.
     val currentOnHiddenGesture by rememberUpdatedState(onHiddenGesture)
+    val currentOnSetupDone by rememberUpdatedState(onSetupDone)
     VozSeguraTheme {
         CompositionLocalProvider(LocalAmbientState provides ambientState) {
             // No system TimeText: the watch face draws its own clock, a second one would give it away.
@@ -39,8 +44,18 @@ fun WearApp(
                 val navController = rememberSwipeDismissableNavController()
                 SwipeDismissableNavHost(
                     navController = navController,
-                    startDestination = WearRoutes.WATCH_FACE,
+                    startDestination = if (showSetup) WearRoutes.SETUP else WearRoutes.WATCH_FACE,
                 ) {
+                    composable(WearRoutes.SETUP) {
+                        SetupScreen(
+                            onDone = {
+                                currentOnSetupDone()
+                                navController.navigate(WearRoutes.WATCH_FACE) {
+                                    popUpTo(WearRoutes.SETUP) { inclusive = true }
+                                }
+                            },
+                        )
+                    }
                     composable(WearRoutes.WATCH_FACE) {
                         // The watch face never reads the alert phase: it looks identical in every state.
                         HiddenGestureLayer(onGesture = { currentOnHiddenGesture(it) }) {

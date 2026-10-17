@@ -17,8 +17,34 @@ val Poppins = FontFamily(
     Font(R.font.poppins_bold, FontWeight.Bold),
 )
 
-/** Wear Material 3 scale (sizes tuned by Google for 1.2-2 inch screens) rendered in Poppins. */
-internal val BrandTypography = Typography(defaultFontFamily = Poppins)
+/**
+ * Wear Material 3 scale (sizes tuned by Google for 1.2-2 inch screens) rendered in Poppins.
+ * `Typography(defaultFontFamily = ...)` does not reach the predefined styles, so each one is
+ * re-based explicitly.
+ */
+internal val BrandTypography: Typography = Typography().run {
+    fun TextStyle.poppins() = copy(fontFamily = Poppins)
+    Typography(
+        displayLarge = displayLarge.poppins(),
+        displayMedium = displayMedium.poppins(),
+        displaySmall = displaySmall.poppins(),
+        titleLarge = titleLarge.poppins(),
+        titleMedium = titleMedium.poppins(),
+        titleSmall = titleSmall.poppins(),
+        labelLarge = labelLarge.poppins(),
+        labelMedium = labelMedium.poppins(),
+        labelSmall = labelSmall.poppins(),
+        bodyLarge = bodyLarge.poppins(),
+        bodyMedium = bodyMedium.poppins(),
+        bodySmall = bodySmall.poppins(),
+        bodyExtraSmall = bodyExtraSmall.poppins(),
+        numeralExtraLarge = numeralExtraLarge.poppins(),
+        numeralLarge = numeralLarge.poppins(),
+        numeralMedium = numeralMedium.poppins(),
+        numeralSmall = numeralSmall.poppins(),
+        numeralExtraSmall = numeralExtraSmall.poppins(),
+    )
+}
 
 /**
  * Watch face styles at the reference size ([WatchDimens.referenceScreen]). The watch face

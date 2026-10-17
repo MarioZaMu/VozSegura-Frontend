@@ -42,12 +42,14 @@ sealed interface AlertEvent {
 /** Side effects the controller must run after a transition. */
 sealed interface AlertEffect {
     data class Vibrate(val signal: HapticSignal) : AlertEffect
+    /** Start the foreground service and begin looking up the location. */
+    data object StartSession : AlertEffect
     data object StartGraceTimer : AlertEffect
     data object StartDelivery : AlertEffect
     data object StartRetryTimer : AlertEffect
     /** Tell contacts "alerta cancelada: estoy bien". Only after something may have been sent. */
     data object SendCancellation : AlertEffect
-    /** Stop timers, delivery and (from phase 5) recording. */
+    /** Stop timers, delivery, recording and the foreground service. */
     data object StopAll : AlertEffect
     data object StartResetTimer : AlertEffect
 }
@@ -64,7 +66,11 @@ object AlertStateMachine {
         AlertPhase.Idle -> when (event) {
             AlertEvent.DoubleTap -> Transition(
                 AlertPhase.Arming,
-                listOf(AlertEffect.Vibrate(HapticSignal.DETECTED), AlertEffect.StartGraceTimer),
+                listOf(
+                    AlertEffect.Vibrate(HapticSignal.DETECTED),
+                    AlertEffect.StartSession,
+                    AlertEffect.StartGraceTimer,
+                ),
             )
             else -> Transition(phase)
         }

@@ -52,6 +52,8 @@ dependencies {
     implementation(project(":shared"))
     implementation(libs.wear.compose.navigation)
     implementation(libs.androidx.wear)
+    implementation(libs.androidx.wear.ongoing)
+    implementation(libs.play.services.location)
     implementation(libs.androidx.core.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))

@@ -2,7 +2,10 @@ package com.vozsegura.wear
 
 import android.app.Application
 import com.vozsegura.wear.alert.AlertController
+import com.vozsegura.wear.alert.AudioClipRecorder
 import com.vozsegura.wear.alert.FakeAlertGateway
+import com.vozsegura.wear.alert.ForegroundAlertSession
+import com.vozsegura.wear.alert.LocationProvider
 import com.vozsegura.wear.haptics.Haptics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
@@ -21,6 +24,9 @@ class WearApplication : Application() {
             // Demo gateway until the backend exists (phase 7).
             gateway = FakeAlertGateway(),
             haptics = haptics,
+            session = ForegroundAlertSession(this),
+            locationProvider = LocationProvider(this),
+            recorder = AudioClipRecorder(this),
         )
     }
 }

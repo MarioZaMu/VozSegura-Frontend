@@ -11,11 +11,15 @@ class AlertStateMachineTest {
     private fun reduce(phase: AlertPhase, event: AlertEvent) = AlertStateMachine.reduce(phase, event)
 
     @Test
-    fun `double tap arms with a single tick and starts the grace window`() {
+    fun `double tap arms with a single tick, starts the session and the grace window`() {
         val t = reduce(AlertPhase.Idle, AlertEvent.DoubleTap)
         assertEquals(AlertPhase.Arming, t.phase)
         assertEquals(
-            listOf(AlertEffect.Vibrate(HapticSignal.DETECTED), AlertEffect.StartGraceTimer),
+            listOf(
+                AlertEffect.Vibrate(HapticSignal.DETECTED),
+                AlertEffect.StartSession,
+                AlertEffect.StartGraceTimer,
+            ),
             t.effects,
         )
     }
