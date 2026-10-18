@@ -170,12 +170,51 @@ movement ≤12 px, contact ≤60 px (bigger = palm). Rejections with a reason:
 - Automated browser clicks fire ~27 ms apart and are correctly rejected as `too-fast`;
   test with real taps or dispatched PointerEvents with human timing.
 
+## Alert capture (active state)
+
+`features/alert/`:
+
+- `alertCapture.ts`: the `AlertCapture` contract (`start(options, listener)` / `stop()`)
+  and its events (`started`, `location`, `chunk`, `error`, `stopped`). Defaults: 20 s
+  audio chunks, 5 min max.
+- `alertSession.ts` (+ tests): pure reducer. A second activation while active is ignored;
+  one source failing never stops the other; after `stopped` only the flushed last chunk is
+  accepted.
+- `alertSessionStore.ts`: module store (`activateAlert`, `stopAlert`, `useAlertSession`).
+  Picks the implementation: **demo** when `demoMode`, **native** in the Android app,
+  **web** otherwise. `alertId` = `crypto.randomUUID()`.
+- `demoCapture.ts`: simulated location drifting around Medellín every 5 s and fake chunks.
+- `webCapture.ts`: `watchPosition` first, then one `MediaRecorder` per chunk (each file is
+  playable on its own; `timeslice` pieces are not).
+- `nativeCapture.ts`: wraps the local `AlertCapture` plugin; `ensureNativeCapturePermissions`
+  runs when the app opens (never at the moment of the alert: a dialog then would give the
+  gesture away; phase 7 moves it into onboarding).
+- `AlertDiagnostics.tsx`: PC-only panel (status, elapsed time, sources, last fix, chunks,
+  errors, "Detener"). **The watch face never changes when an alert starts.**
+
+Android side (`android/app/src/main/java/com/mariozamu/vozsegura/`):
+
+- `AlertCapturePlugin.java`: `start/stop/getStatus` + Capacitor permission aliases
+  `microphone` and `location`; service events reach JS as retained `captureEvent`s.
+- `AlertCaptureService.java`: foreground service typed `microphone|location` (only the
+  types whose permission is granted, Android 14 rule), partial wake lock, AAC 16 kHz mono
+  32 kbps in `files/alerts/{alertId}/chunk-NNN.m4a` (one MediaRecorder per chunk), fused
+  location every 10 s (`play-services-location`), self-stop at max duration (JS may be
+  paused with the screen off). The mandatory notification is "Sincronizando…" on an
+  `IMPORTANCE_MIN` channel; the app never asks for `POST_NOTIFICATIONS`, so on Android
+  13+ it is not shown. Upload of the chunks comes with the backend (phase 8).
+- Demo mode defaults to **off in the app** (no demo switch there until phase 7) and on in
+  the browser.
+- Logs: `adb logcat -s AlertCapture`. Files:
+  `adb shell run-as com.mariozamu.vozsegura ls -l files/alerts/`.
+
 ## Settings store
 
 `features/settings/settingsStore.ts`: module-level store + `useSyncExternalStore`,
 persisted in localStorage (`voz-segura:settings:v1`) through the safe helpers in
 `lib/storage.ts`, and synced across tabs with the `storage` event. Fields so far:
-`demoMode` (default **on**, so the classroom demo works out of the box) and `watchShape`.
+`demoMode` (default **on** in the browser, so the classroom demo works out of the box;
+off in the Android app) and `watchShape`.
 
 ## Android app
 
@@ -200,15 +239,10 @@ persisted in localStorage (`voz-segura:settings:v1`) through the safe helpers in
 3. ✅ Idle watch face, full-screen watch mode on phone, demo mode switch
 4. ✅ Double-tap detection (accidental-tap prevention) + discreet vibration
 5. ✅ Android app with Capacitor: immersive watch, native haptics, keep-awake, APK scripts
-6. Active state: real audio + location (web + native foreground service), without revealing anything
+6. ✅ Active state: real audio + location (web + native foreground service), without revealing anything
 7. Settings: contacts, message, permissions up front, gesture practice, history
 8. Backend: alert endpoint, storage, AI transcription/summary, Telegram, Vercel deploy
 9. Contact view + link delivery; "generando resumen…" state
 10. Silent confirmation and cancel / false alarm
 11. Installable PWA + final APK, demo polish, pixel perfect, usability tests (PC + Android)
 
-Phase 6 plan: an `AlertCapture` interface in `features/alert/` with demo, web
-(MediaRecorder chunks + watchPosition + Wake Lock) and native implementations. The native
-one is a local Kotlin Capacitor plugin with a `ForegroundService` (microphone|location)
-that records in chunks and uploads them straight to the backend, because the WebView's JS
-pauses with the screen off. Minimal-importance notification with neutral text.
