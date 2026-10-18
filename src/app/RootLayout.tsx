@@ -27,12 +27,12 @@ export function RootLayout() {
 
   return (
     <div className="flex h-full flex-col">
-      <nav className="flex justify-center gap-1 overflow-x-auto px-2 py-3 sm:gap-2 sm:p-4" aria-label={t.nav.label}>
+      <nav className="flex shrink-0 justify-center gap-1 overflow-x-auto px-2 py-3 sm:gap-2 sm:p-4" aria-label={t.nav.label}>
         {navItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
-            end
+            end={item.to === routes.watch}
             className={({ isActive }) =>
               `shrink-0 rounded-full px-3 py-2 text-body-sm sm:px-4 ${isActive ? 'bg-primary text-on-accent' : 'bg-surface text-text-secondary'}`
             }
