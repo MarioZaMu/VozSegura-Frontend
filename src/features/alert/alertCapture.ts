@@ -18,6 +18,8 @@ export type AudioChunk = {
   mimeType: string
   /** Web/demo only: the recorded audio. Native chunks stay on disk until uploaded. */
   blob?: Blob
+  /** Native app only: file in the app's private storage (uploaded by the service in phase 8). */
+  path?: string
 }
 
 export type CaptureSource = 'microphone' | 'location'
