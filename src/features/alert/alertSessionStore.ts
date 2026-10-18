@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react'
+import { config, isBackendConfigured } from '../../lib/config'
 import { isNativeApp } from '../../lib/platform'
 import { getSettings } from '../settings/settingsStore'
 import { defaultCaptureOptions, type AlertCapture, type CaptureEvent, type StopReason } from './alertCapture'
@@ -6,6 +7,7 @@ import { alertSessionReducer, initialAlertSession, type AlertAction, type AlertS
 import { createDemoCapture } from './demoCapture'
 import { createNativeCapture } from './nativeCapture'
 import { createWebCapture } from './webCapture'
+import { withWebDelivery } from './webDelivery'
 
 // Wires the pure reducer to the capture implementations. Module-level so the alert keeps
 // running if the watch view re-renders or the route changes.
@@ -40,9 +42,12 @@ export function getAlertSession(): AlertSession {
 export function activateAlert(): void {
   if (session.status === 'active') return
   const alertId = crypto.randomUUID()
+  const startedAt = Date.now()
   const current = createCapture()
   capture = current
-  dispatch({ type: 'activate', alertId, kind: current.kind, time: Date.now() })
+  // Demo mode never sends anything; real captures need the backend URL and token.
+  const delivers = current.kind !== 'demo' && isBackendConfigured()
+  dispatch({ type: 'activate', alertId, kind: current.kind, time: startedAt, delivers })
 
   // Events from a previous alert's capture must not leak into this one.
   const onEvent = (event: CaptureEvent) => {
@@ -50,7 +55,11 @@ export function activateAlert(): void {
     dispatch({ type: 'capture', event, time: Date.now() })
     if (event.type === 'stopped') window.clearTimeout(maxDurationTimer)
   }
-  void current.start({ alertId, ...defaultCaptureOptions }, onEvent)
+  // The Android service sends everything itself (JS pauses with the screen off); the
+  // browser capture is wrapped so JS sends it.
+  const listener = delivers && current.kind === 'web' ? withWebDelivery(alertId, startedAt, onEvent) : onEvent
+  const backend = delivers && current.kind === 'native' ? { apiBaseUrl: config.apiBaseUrl, apiToken: config.alertApiToken } : {}
+  void current.start({ alertId, startedAt, ...defaultCaptureOptions, ...backend }, listener)
 
   // The native service enforces the limit itself (this JS may be paused with the screen off).
   if (current.kind !== 'native') {
