@@ -22,6 +22,8 @@ const DiscreetHaptics = registerPlugin<DiscreetHapticsPlugin>('DiscreetHaptics')
 export const hapticPatterns = {
   /** Gesture recognized, alert activated. */
   confirm: [80],
+  /** Triple tap: alert stopped. Two pulses, clearly different from the single confirm. */
+  stopped: [70, 120, 70],
   /** Alert sent to contacts. */
   sent: [50, 100, 50],
   /** Alert cancelled (false alarm). */

@@ -19,6 +19,15 @@ type AlertCapturePlugin = {
 
 const NativeAlertCapture = registerPlugin<AlertCapturePlugin>('AlertCapture')
 
+/** True when the capture service is still recording (e.g. the app was reopened mid-alert). */
+export async function isNativeCaptureRunning(): Promise<boolean> {
+  return (await NativeAlertCapture.getStatus()).running
+}
+
+export function stopNativeCapture(): Promise<void> {
+  return NativeAlertCapture.stop()
+}
+
 export function checkNativeCapturePermissions(): Promise<CapturePermissions> {
   return NativeAlertCapture.checkPermissions()
 }

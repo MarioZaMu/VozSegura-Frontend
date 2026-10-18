@@ -8,7 +8,7 @@ import { WatchDevice } from '../../components/watch/WatchDevice'
 import { WatchScreen } from '../../components/watch/WatchScreen'
 import { watchShapeLabels, type WatchShape } from '../../components/watch/watchShape'
 import { AlertDiagnostics } from '../../features/alert/AlertDiagnostics'
-import { activateAlert, useAlertSession } from '../../features/alert/alertSessionStore'
+import { activateAlert, stopAlertFromGesture, useAlertSession } from '../../features/alert/alertSessionStore'
 import { GestureDiagnostics } from '../../features/gesture/GestureDiagnostics'
 import { MobileDebugPanel } from '../../features/gesture/MobileDebugPanel'
 import { useLongPress } from '../../features/gesture/useLongPress'
@@ -92,6 +92,7 @@ export function WatchView() {
   // The face never changes when the alert starts: only the discreet confirmation is felt.
   const { handlers: panicHandlers, events, blinkKey } = usePanicGesture({
     onActivate: activateAlert,
+    onTripleTap: stopAlertFromGesture,
     alwaysBlink: !isFullscreen,
   })
   const openSettings = useCallback(() => navigate(routes.settings), [navigate])

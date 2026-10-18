@@ -7,7 +7,7 @@ import { defaultCaptureOptions, type AlertCapture, type CaptureEvent, type StopR
 import { alertSessionReducer, initialAlertSession, type AlertAction, type AlertSession } from './alertSession'
 import { recordAlert } from './alertHistory'
 import { createDemoCapture } from './demoCapture'
-import { createNativeCapture } from './nativeCapture'
+import { createNativeCapture, isNativeCaptureRunning, stopNativeCapture } from './nativeCapture'
 import { createWebCapture } from './webCapture'
 import { withWebDelivery } from './webDelivery'
 
@@ -80,6 +80,35 @@ export async function stopAlert(reason: StopReason = 'user'): Promise<void> {
   await current.stop()
   // The native service reports 'stopped' itself; demo and web stop synchronously.
   if (current.kind !== 'native') dispatch({ type: 'capture', event: { type: 'stopped', reason }, time: Date.now() })
+}
+
+/** The triple tap that stops an alert only counts once the alert is this old, so an
+ *  accidental triple tap cannot activate and immediately stop it. */
+export const MIN_ALERT_AGE_TO_STOP_MS = 3000
+
+// The Android service may still be recording an alert started before the app was reopened
+// (this JS session knows nothing about it). Checked once at startup.
+let orphanNativeAlert = false
+if (isNativeApp()) {
+  isNativeCaptureRunning().then(
+    (running) => (orphanNativeAlert = running),
+    () => {},
+  )
+}
+
+/** Triple tap on the watch. Returns true when it stopped an alert. */
+export function stopAlertFromGesture(now = Date.now()): boolean {
+  if (session.status === 'active' && session.startedAt !== null) {
+    if (now - session.startedAt < MIN_ALERT_AGE_TO_STOP_MS) return false
+    void stopAlert('user')
+    return true
+  }
+  if (orphanNativeAlert) {
+    orphanNativeAlert = false
+    void stopNativeCapture().catch(() => {})
+    return true
+  }
+  return false
 }
 
 export function useAlertSession(): AlertSession {
