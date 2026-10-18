@@ -17,8 +17,11 @@ const navItems = isNativeApp() ? allNavItems.slice(0, 2) : allNavItems
 export function RootLayout() {
   const isWatchRoute = useMatch(routes.watch) !== null
   const isFullscreenWatch = useWatchDisplayMode() === 'fullscreen' && isWatchRoute
+  // A contact opening a real alert link must see only the alert, not the app's views.
+  const contactAlert = useMatch(routes.contactAlert)
+  const isRealContactAlert = contactAlert !== null && contactAlert.params.alertId !== 'demo'
 
-  if (isFullscreenWatch) return <Outlet />
+  if (isFullscreenWatch || isRealContactAlert) return <Outlet />
 
   return (
     <div className="flex h-full flex-col">
