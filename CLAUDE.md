@@ -147,7 +147,7 @@ screen on the phone), `watchShape.ts` (round | square).
 - **Idle face** (`WatchFace`): time (24 h), Spanish date, temperature, steps ring and heart
   rate. Data is simulated and deterministic per minute (`simulatedWatchData.ts`).
 
-## Panic gesture (double tap)
+## Panic gesture (double tap activates, triple tap stops)
 
 `features/gesture/doubleTapDetector.ts` is framework-free and unit tested
 (`doubleTapDetector.test.ts`). Defaults: second tap ≤350 ms after the first is released
@@ -156,6 +156,14 @@ movement ≤12 px, contact ≤60 px (bigger = palm). Rejections with a reason:
 `not-armed` (first 800 ms after the screen is shown — pocket wake-ups), `cooldown`
 (2 s after a double tap, so a triple tap cannot re-trigger), `multi-touch`, `palm`,
 `moved`, `long-press`, `too-fast`, `too-far`. A browser `pointercancel` never counts.
+
+**Triple tap (phase 10):** a third valid tap within the same timing/distance rules right
+after a double tap emits `triple-tap` (it is the one tap allowed through the cooldown).
+`WatchView` passes `stopAlertFromGesture` (alertSessionStore) as `usePanicGesture`'s
+`onTripleTap`: it stops the active alert only once it is ≥3 s old
+(`MIN_ALERT_AGE_TO_STOP_MS`, so a stray triple tap cannot activate and cancel at once), or
+the Android service's alert when the app was reopened mid-alert. When it stops something
+the phone vibrates `hapticPatterns.stopped` (two short pulses); otherwise nothing happens.
 
 - `useDoubleTap` wires it to pointer events and re-arms on `visibilitychange`.
 - `usePanicGesture` adds the confirmation: `vibrate(hapticPatterns.confirm)` (80 ms; 35 ms
@@ -211,7 +219,7 @@ Delivery to the backend (phase 8):
 
 Android side (`android/app/src/main/java/com/mariozamu/vozsegura/`):
 
-- `AlertCapturePlugin.java`: `start/stop/getStatus` + Capacitor permission aliases
+- `AlertCapturePlugin.java`: `start/stop/getStatus/flushPending` + Capacitor permission aliases
   `microphone` and `location`; service events reach JS as retained `captureEvent`s.
 - `AlertUploader.java`: two single-thread queues (alert → chunks → stop in order;
   positions apart so they never wait behind audio), `HttpURLConnection`, ~2 min of retries
@@ -225,11 +233,17 @@ Android side (`android/app/src/main/java/com/mariozamu/vozsegura/`):
   paused with the screen off). The mandatory notification is "Sincronizando…" on an
   `IMPORTANCE_MIN` channel; the app never asks for `POST_NOTIFICATIONS`, so on Android
   13+ it is not shown.
+- `PendingAlerts.java` (phase 10): the service keeps `meta.json` next to the chunks
+  (startedAt, deviceId, finished chunk durations, totalChunks, stopReason, stopSent). On
+  app start, with a backend configured, `alertSessionStore` calls `flushPending`: each
+  leftover folder (except the one still in use, `busyAlertId`) gets its finished chunks
+  uploaded, then the stop, and is deleted. Half-written chunks (app killed mid-recording)
+  are dropped; folders older than 24 h are deleted unsent. Logcat tag `PendingAlerts`.
 - Demo mode defaults to **off in the app** and on in the browser; both can change it in
   Settings.
 - `res/xml/network_security_config.xml`: HTTPS only, except `localhost`/`127.0.0.1` for a
   local backend over USB (`adb reverse tcp:3100 tcp:3100`).
-- Logs: `adb logcat -s AlertCapture AlertUpload` (HyperOS floods logcat; read it soon). Files:
+- Logs: `adb logcat -s AlertCapture AlertUpload PendingAlerts` (HyperOS floods logcat; read it soon). Files:
   `adb shell run-as com.mariozamu.vozsegura ls -l files/alerts/`.
 
 ## Settings store
@@ -259,6 +273,11 @@ launch until "Ir al reloj" is pressed once).
 - **PracticeSection**: same `usePanicGesture` (detector + vibration) on a small screen, but
   `onActivate` only counts. Never raises an alert.
 - Demo-mode switch, **HistorySection**, and "Ir al reloj" (sets `onboarded`).
+- **AlertControlSection** (phase 10, top of the page): while an alert is recording (this
+  session or the Android service's) shows "Detener alerta"; while it runs or for 24 h after
+  the last alert, "Avisar que estoy bien" / "Fue una falsa alarma" (stops first if needed,
+  then `postResolve` → `POST /api/resolve`; demo alerts only mark it locally). The answer
+  is kept in the history entry (`resolution`) and the card turns into a confirmation.
 - `features/settings/settingsApi.ts`: client for `/api/device` and `/api/contacts`.
 - **Hidden entry:** on the watch a 2 s still press (`features/gesture/useLongPress.ts`,
   12 px tolerance) opens Settings; the double-tap detector already rejects long presses,
@@ -276,13 +295,17 @@ app navigation for real alerts; `/alerta/demo` keeps it for the presentation.
 
 - `features/contact/alertView.ts` (+ tests): `fetchAlertView` (`GET /api/alert?id`, public),
   types, and pure helpers: `isFinal` (stopped + summary ready/error + no pending
-  transcripts, or stopped with no audio for 2 min), `formatAgo`, `chunkRange`,
+  transcripts, or stopped with no audio for 2 min; and resolved, or 15 min since the stop,
+  so a later "estoy bien" still shows up), `formatAgo`, `chunkRange`,
   `directionsUrl`, `ownerLabel` ("Tu contacto" when no name).
 - `useAlertView`: polls every 5 s until `isFinal`; pauses while the tab is hidden; on a
   failed refresh keeps the last data and shows "Sin conexión". `demo` → `demoAlertView`.
 - `demoAlertView.ts`: deterministic simulated alert ("Laura", El Poblado) that starts 40 s
   before the page opened: positions every 5 s, 20 s chunks transcribed 6 s later, a
-  summary that goes "Generando…" → partial → final, stop at second 100.
+  summary that goes "Generando…" → partial → final, stop at second 100, and "estoy bien"
+  at second 135.
+- Resolution (phase 10): green "Está bien" badge + banner, or "Falsa alarma", right under
+  the title.
 - `views/contact/`: `ContactAlertView` (header with live/finished badge, owner message,
   location card with "Cómo llegar" (Google Maps directions) and "Llamar al 123", summary
   card with "Generando resumen…" / partial / final + AI disclaimer, audio card with one
@@ -322,7 +345,7 @@ app navigation for real alerts; `/alerta/demo` keeps it for the presentation.
 6. ✅ Active state: real audio + location (web + native foreground service), without revealing anything
 7. ✅ Settings: contacts by Telegram invite, message, permissions up front, gesture practice, history
 8. ✅ Backend: alert endpoint, storage, AI transcription/summary, Telegram, Vercel deploy
-9. 🧪 Contact view: live map, AI summary ("generando resumen…"), audio + transcripts, demo (pending phone test)
-10. Silent confirmation and cancel / false alarm
+9. ✅ Contact view: live map, AI summary ("generando resumen…"), audio + transcripts, demo
+10. 🧪 Triple tap to stop, "estoy bien" / false alarm, leftover audio resent on app open (pending phone test)
 11. Installable PWA + final APK, demo polish, pixel perfect, usability tests (PC + Android)
 
