@@ -45,8 +45,8 @@ holds `sdk.dir`.
 ## Stack
 
 React 19 + Vite 8 + TypeScript 6 + Tailwind CSS v4 + React Router 8. Lint with oxlint,
-tests with Vitest. Android app with Capacitor 8 (`@capacitor-community/keep-awake` + local
-`DiscreetHaptics` plugin).
+tests with Vitest. Android app with Capacitor 8 (`@capacitor-community/keep-awake`,
+`@capacitor/share` + local `DiscreetHaptics` and `AlertCapture` plugins).
 Deployed on Vercel (git integration; every push to `main` deploys). `vercel.json`
 rewrites every path to `index.html` so client routes survive a reload.
 
@@ -186,9 +186,11 @@ movement ≤12 px, contact ≤60 px (bigger = palm). Rejections with a reason:
 - `demoCapture.ts`: simulated location drifting around Medellín every 5 s and fake chunks.
 - `webCapture.ts`: `watchPosition` first, then one `MediaRecorder` per chunk (each file is
   playable on its own; `timeslice` pieces are not).
-- `nativeCapture.ts`: wraps the local `AlertCapture` plugin; `ensureNativeCapturePermissions`
-  runs when the app opens (never at the moment of the alert: a dialog then would give the
-  gesture away; phase 7 moves it into onboarding).
+- `nativeCapture.ts`: wraps the local `AlertCapture` plugin; `check/ensureNativeCapturePermissions`
+  are used only from Settings (never at the moment of the alert: a dialog then would give
+  the gesture away).
+- `alertHistory.ts`: local list (20 max, `voz-segura:alert-history:v1`) of alerts raised on
+  this device, recorded in `activateAlert`; shown in Settings with links to `/alerta/:id`.
 - `AlertDiagnostics.tsx`: PC-only panel (status, elapsed time, sources, last fix, chunks,
   delivery, errors, "Detener"). **The watch face never changes when an alert starts.**
 
@@ -199,7 +201,10 @@ Delivery to the backend (phase 8):
 - `webDelivery.ts`: wraps the browser capture listener: alert first, a position every
   10 s, chunks uploaded one by one in order, stop last. Reports `delivery` events.
 - The Android service does the same in Java (`AlertUploader.java`), because JS pauses with
-  the screen off. JS only passes `apiBaseUrl`, `apiToken` and `startedAt` in the start options.
+  the screen off. JS only passes `apiBaseUrl`, `apiToken`, `deviceId` and `startedAt` in the start options.
+- `lib/deviceId.ts`: random UUID per phone/browser (`voz-segura:device-id:v1`), sent with
+  every alert (`postAlert` and the native uploader) so the backend notifies that device's
+  confirmed contacts. No user accounts.
 - **Demo mode never sends anything**; real alerts need `VITE_API_BASE_URL` and
   `VITE_ALERT_API_TOKEN` (`isBackendConfigured()` in `lib/config.ts`). Local values live
   in the git-ignored `.env.local`; the token is public once built (inside the bundle/APK).
@@ -220,8 +225,8 @@ Android side (`android/app/src/main/java/com/mariozamu/vozsegura/`):
   paused with the screen off). The mandatory notification is "Sincronizando…" on an
   `IMPORTANCE_MIN` channel; the app never asks for `POST_NOTIFICATIONS`, so on Android
   13+ it is not shown.
-- Demo mode defaults to **off in the app** (no demo switch there until phase 7) and on in
-  the browser.
+- Demo mode defaults to **off in the app** and on in the browser; both can change it in
+  Settings.
 - `res/xml/network_security_config.xml`: HTTPS only, except `localhost`/`127.0.0.1` for a
   local backend over USB (`adb reverse tcp:3100 tcp:3100`).
 - Logs: `adb logcat -s AlertCapture AlertUpload` (HyperOS floods logcat; read it soon). Files:
@@ -231,9 +236,37 @@ Android side (`android/app/src/main/java/com/mariozamu/vozsegura/`):
 
 `features/settings/settingsStore.ts`: module-level store + `useSyncExternalStore`,
 persisted in localStorage (`voz-segura:settings:v1`) through the safe helpers in
-`lib/storage.ts`, and synced across tabs with the `storage` event. Fields so far:
+`lib/storage.ts`, and synced across tabs with the `storage` event. Fields:
 `demoMode` (default **on** in the browser, so the classroom demo works out of the box;
-off in the Android app) and `watchShape`.
+off in the Android app), `watchShape` and `onboarded` (Android app: Settings opens on
+launch until "Ir al reloj" is pressed once).
+
+## Settings view (phase 7)
+
+`views/settings/`: one card per section, all in Spanish.
+
+- **ContactsSection** (+ `useContacts`): add a name → `POST /api/contacts` → share
+  `t.me/VSegurabot?start=<code>` with `lib/share.ts` (`@capacitor/share` in the app, Web
+  Share API, else clipboard). Chips Pendiente / Confirmado / Se dio de baja. The list
+  refreshes on focus/visibility and every 5 s while an invite is pending, so the status
+  flips by itself when the contact taps "Iniciar". Invite links only come back on create,
+  so a pending contact without a known link gets "Nuevo enlace" (`PUT`, replaces it).
+  Max 10 contacts. Without confirmed contacts the backend uses `DEFAULT_CHAT_IDS`.
+- **ProfileSection**: owner name (40) and personal message (280), shown in the Telegram alert.
+- **PermissionsSection** (`features/settings/capturePermissions.ts`): mic + location state
+  (native plugin or `navigator.permissions`) and "Conceder permisos"; in the browser the
+  prompt is triggered by briefly opening the mic and asking for one position.
+- **PracticeSection**: same `usePanicGesture` (detector + vibration) on a small screen, but
+  `onActivate` only counts. Never raises an alert.
+- Demo-mode switch, **HistorySection**, and "Ir al reloj" (sets `onboarded`).
+- `features/settings/settingsApi.ts`: client for `/api/device` and `/api/contacts`.
+- **Hidden entry:** on the watch a 2 s still press (`features/gesture/useLongPress.ts`,
+  12 px tolerance) opens Settings; the double-tap detector already rejects long presses,
+  so both share the touch layer (`useWatchGestures` in `WatchView`). Nothing on the watch
+  hints at it. In the app the nav only shows Reloj and Configuración.
+- Local testing against the local backend: `npm run dev -- --mode localapi` with a
+  git-ignored `.env.localapi.local` (`VITE_API_BASE_URL=http://localhost:3100`); the
+  backend's `ALLOWED_ORIGIN` must match the Vite port.
 
 ## Android app
 
@@ -259,7 +292,7 @@ off in the Android app) and `watchShape`.
 4. ✅ Double-tap detection (accidental-tap prevention) + discreet vibration
 5. ✅ Android app with Capacitor: immersive watch, native haptics, keep-awake, APK scripts
 6. ✅ Active state: real audio + location (web + native foreground service), without revealing anything
-7. Settings: contacts, message, permissions up front, gesture practice, history
+7. 🧪 Settings: contacts by Telegram invite, message, permissions up front, gesture practice, history (pending phone test)
 8. ✅ Backend: alert endpoint, storage, AI transcription/summary, Telegram, Vercel deploy
 9. Contact view + link delivery; "generando resumen…" state
 10. Silent confirmation and cancel / false alarm
