@@ -59,7 +59,7 @@ npm run preview   # sirve dist/ localmente
 > En el celular, el micrófono y la ubicación solo funcionan sobre HTTPS. Para probar en
 > el teléfono usa la URL de Vercel.
 
-## App Android (Capacitor)
+## App Android 
 
 Requisitos: Android Studio instalado (trae el JDK y el SDK de Android).
 
