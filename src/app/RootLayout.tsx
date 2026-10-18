@@ -25,14 +25,14 @@ export function RootLayout() {
 
   return (
     <div className="flex h-full flex-col">
-      <nav className="flex flex-wrap justify-center gap-2 p-4" aria-label="Vistas">
+      <nav className="flex justify-center gap-1 overflow-x-auto px-2 py-3 sm:gap-2 sm:p-4" aria-label="Vistas">
         {navItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             end
             className={({ isActive }) =>
-              `rounded-full px-4 py-2 text-body-sm ${isActive ? 'bg-primary text-text-primary' : 'bg-surface text-text-secondary'}`
+              `shrink-0 rounded-full px-3 py-2 text-body-sm sm:px-4 ${isActive ? 'bg-primary text-text-primary' : 'bg-surface text-text-secondary'}`
             }
           >
             {item.label}
