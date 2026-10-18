@@ -18,7 +18,7 @@ export function RootLayout() {
             to={item.to}
             end
             className={({ isActive }) =>
-              `rounded-full px-4 py-2 text-sm ${isActive ? 'bg-primary text-text-primary' : 'bg-surface text-text-secondary'}`
+              `rounded-full px-4 py-2 text-body-sm ${isActive ? 'bg-primary text-text-primary' : 'bg-surface text-text-secondary'}`
             }
           >
             {item.label}

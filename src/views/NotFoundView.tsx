@@ -5,7 +5,7 @@ export function NotFoundView() {
   return (
     <section className="grid h-full place-items-center text-center">
       <div>
-        <h1 className="text-2xl font-semibold">Página no encontrada</h1>
+        <h1 className="text-headline font-semibold">Página no encontrada</h1>
         <Link to={routes.watch} className="text-primary underline">
           Volver al reloj
         </Link>

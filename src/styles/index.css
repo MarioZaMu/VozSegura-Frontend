@@ -1,10 +1,21 @@
 @import 'tailwindcss';
+@import '@fontsource/poppins/400.css';
+@import '@fontsource/poppins/500.css';
+@import '@fontsource/poppins/600.css';
+@import '@fontsource/poppins/700.css';
 
 /*
- * Design tokens. Phase 2 extends this with typography, spacing and radii.
- * Never use raw color values in components: always go through these tokens.
+ * Design tokens — the single source of truth for the UI.
+ * Tailwind defaults are reset (`--x-*: initial`) so only these tokens exist as utilities:
+ * a raw color or size in a component simply has no class to use.
  */
 @theme {
+  /* Color: brand (Settings, Contact) */
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-black: #000000;
+  --color-white: #ffffff;
   --color-background: #0b0613;
   --color-surface: #1a1225;
   --color-surface-raised: #2a2236;
@@ -14,6 +25,24 @@
   --color-text-primary: #ffffff;
   --color-text-secondary: #9a93a8;
   --color-danger: #e53935;
+
+  /* Typography */
+  --font-*: initial;
+  --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+
+  --text-*: initial;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.25rem;
+  --text-body: 1rem;
+  --text-body--line-height: 1.5rem;
+  --text-title: 1.25rem;
+  --text-title--line-height: 1.75rem;
+  --text-headline: 1.75rem;
+  --text-headline--line-height: 2.25rem;
+  --text-display: 3rem;
+  --text-display--line-height: 1;
 }
 
 @layer base {
@@ -24,6 +53,6 @@
   }
 
   body {
-    @apply bg-background text-text-primary antialiased;
+    @apply bg-background font-sans text-body text-text-primary antialiased;
   }
 }
