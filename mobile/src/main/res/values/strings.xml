@@ -6,14 +6,7 @@
     <string name="nav_contacts">Contactos</string>
     <string name="nav_history">Historial</string>
     <string name="nav_settings">Ajustes</string>
-
-    <!-- Placeholder screens (phase 1) -->
-    <string name="home_title">Voz Segura</string>
-    <string name="home_subtitle">Tu reloj está protegido</string>
-    <string name="contacts_title">Contactos de confianza</string>
-    <string name="history_title">Historial de alertas</string>
-    <string name="settings_title">Ajustes</string>
-    <string name="placeholder_coming_soon">Disponible en una próxima fase</string>
+    <string name="cd_back">Volver</string>
 
     <!-- Alert states -->
     <string name="alert_state_idle">En reposo</string>
@@ -22,7 +15,96 @@
     <string name="alert_state_error">Error al enviar</string>
     <string name="alert_state_cancelled">Cancelada</string>
 
-    <!-- Design catalog (phase 2, temporary) -->
+    <!-- Home -->
+    <string name="home_title">Voz Segura</string>
+    <string name="home_ready">Tu reloj está listo para pedir ayuda</string>
+    <string name="home_not_ready">Agrega un contacto para que tu alerta llegue a alguien</string>
+    <string name="home_contacts_caption">contactos listos</string>
+    <string name="home_watch_connected">Reloj conectado: %1$s</string>
+    <string name="home_watch_disconnected">Reloj no conectado. Los cambios se enviarán al conectarlo.</string>
+    <string name="home_demo_on">Modo demostración activo: no se envían alertas reales</string>
+    <string name="home_add_contacts">Agregar contactos</string>
+    <string name="home_last_alert">Última alerta</string>
+    <string name="home_how_title">Cómo funciona</string>
+    <string name="home_how_step1">Toca dos veces la pantalla del reloj. La carátula no cambia: nadie se da cuenta.</string>
+    <string name="home_how_step2">Sientes una vibración. Tienes 4 segundos para cancelar manteniendo presionado 2 segundos.</string>
+    <string name="home_how_step3">Tus contactos reciben tu ubicación por Telegram y luego un audio de 30 segundos.</string>
+    <string name="home_how_step4">La IA solo transcribe y resume el audio después. Nunca decide si se envía una alerta.</string>
+
+    <!-- Contacts -->
+    <string name="contacts_title">Contactos de confianza</string>
+    <string name="contacts_subtitle">Reciben tu alerta por Telegram con tu ubicación.</string>
+    <string name="contacts_how_title">Cómo agregar a alguien</string>
+    <string name="contacts_how_step1">Envíale la invitación.</string>
+    <string name="contacts_how_step2">Tu contacto abre el bot en Telegram y toca Iniciar.</string>
+    <string name="contacts_how_step3">El bot le da un código. Pídele que te lo envíe y escríbelo aquí.</string>
+    <string name="contacts_invite">Invitar por Telegram</string>
+    <string name="contacts_invite_missing">Configura vozsegura.botUsername en local.properties para compartir la invitación.</string>
+    <string name="contacts_invite_text">Hola, te agregué como contacto de confianza en Voz Segura. Si algún día necesito ayuda, te llegará mi ubicación por Telegram. Abre este enlace, toca Iniciar y envíame el código que te dé el bot: %1$s</string>
+    <string name="contacts_invite_chooser">Enviar invitación</string>
+    <string name="contacts_add_title">Nuevo contacto</string>
+    <string name="contacts_name">Nombre</string>
+    <string name="contacts_code">Código de Telegram</string>
+    <string name="contacts_code_help">Solo números, te lo envía tu contacto.</string>
+    <string name="contacts_code_invalid">El código son solo números (el bot se lo da a tu contacto).</string>
+    <string name="contacts_code_duplicate">Ese código ya está en tu lista.</string>
+    <string name="contacts_add">Agregar contacto</string>
+    <string name="contacts_list_title">Tu lista</string>
+    <string name="contacts_empty">Aún no tienes contactos. Sin ellos, tu alerta no llega a nadie.</string>
+    <string name="contacts_code_label">Código %1$s</string>
+    <string name="contacts_remove">Quitar a %1$s</string>
+    <string name="contacts_remove_title">¿Quitar a %1$s?</string>
+    <string name="contacts_remove_body">Dejará de recibir tus alertas. Puedes volver a agregarlo cuando quieras.</string>
+    <string name="action_remove">Quitar</string>
+    <string name="action_cancel">Cancelar</string>
+
+    <!-- History -->
+    <string name="history_title">Historial de alertas</string>
+    <string name="history_subtitle">Las alertas del reloj aparecen aquí. Solo se guardan en este celular.</string>
+    <string name="history_empty">Aún no hay alertas.</string>
+    <string name="history_sent">Tus contactos recibieron la alerta y tu ubicación. El resumen con IA les llega por Telegram.</string>
+    <string name="history_sending">Enviando la alerta…</string>
+    <string name="history_error">No se pudo enviar. El reloj siguió reintentando en silencio.</string>
+    <string name="history_cancelled_silent">Cancelada en los 4 segundos de gracia: no se avisó a nadie.</string>
+    <string name="history_cancelled_notified">Cancelada después de enviarse: tus contactos recibieron \"estoy bien\".</string>
+    <string name="history_clear">Borrar historial</string>
+    <string name="history_clear_title">¿Borrar el historial?</string>
+    <string name="history_clear_body">Se borra solo de este celular. Los mensajes en Telegram no cambian.</string>
+    <string name="action_clear">Borrar</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_message_title">Mensaje de alerta</string>
+    <string name="settings_message_help">Se envía junto con tu ubicación.</string>
+    <string name="settings_message_empty">El mensaje no puede quedar vacío.</string>
+    <string name="action_save">Guardar mensaje</string>
+    <string name="settings_saved">Guardado y enviado al reloj</string>
+    <string name="settings_demo_title">Modo demostración</string>
+    <string name="settings_demo_body">Simula Telegram y la IA. Úsalo para presentar sin enviar alertas reales.</string>
+    <string name="settings_watch_title">Reloj</string>
+    <string name="settings_privacy_title">Privacidad</string>
+    <string name="settings_privacy_body">El audio se borra del reloj en cuanto se sube. Las claves de la IA y de Telegram viven solo en el servidor. La IA nunca decide enviar una alerta.</string>
+    <string name="settings_design_system">Ver sistema de diseño</string>
+
+    <!-- Gesture test -->
+    <string name="gesture_title">Probar gesto</string>
+    <string name="gesture_subtitle">Practica sin enviar nada. Toca dos veces seguidas dentro del círculo, como en el reloj.</string>
+    <string name="gesture_pad_idle">Toca dos veces</string>
+    <string name="gesture_pad_armed">Mantén presionado para cancelar</string>
+    <string name="gesture_detected_title">¡Doble toque detectado!</string>
+    <string name="gesture_detected_body">En el reloj sentirías una vibración. Para cancelar, mantén presionado 2 segundos antes de que termine el círculo.</string>
+    <string name="gesture_sent_title">La alerta se habría enviado</string>
+    <string name="gesture_sent_body">Pasaron los 4 segundos de gracia. Tus contactos recibirían tu ubicación.</string>
+    <string name="gesture_cancelled_title">Cancelada a tiempo</string>
+    <string name="gesture_cancelled_body">No se habría avisado a nadie. Así se corrige un toque accidental.</string>
+    <string name="gesture_tips_title">Consejos</string>
+    <string name="gesture_tip1">Dos toques cortos y rápidos, casi en el mismo punto.</string>
+    <string name="gesture_tip2">Con la palma o la manga no se activa, a propósito.</string>
+    <string name="gesture_tip3">El toque que enciende la pantalla no cuenta.</string>
+    <string name="gesture_successes">Aciertos: %1$d</string>
+    <string name="gesture_reset">Practicar otra vez</string>
+
+    <!-- Design catalog (phase 2), reachable from Settings -->
     <string name="catalog_title">Sistema de diseño</string>
     <string name="catalog_subtitle">Vista previa de colores, tipografía y componentes</string>
     <string name="catalog_ring_value">3</string>

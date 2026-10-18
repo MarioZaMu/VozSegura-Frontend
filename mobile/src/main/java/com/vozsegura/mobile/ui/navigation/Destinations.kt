@@ -17,6 +17,12 @@ data object HistoryRoute
 @Serializable
 data object SettingsRoute
 
+@Serializable
+data object GestureTestRoute
+
+@Serializable
+data object DesignCatalogRoute
+
 /** Top-level destinations shown in the bottom navigation bar. */
 enum class TopLevelDestination(
     val route: Any,

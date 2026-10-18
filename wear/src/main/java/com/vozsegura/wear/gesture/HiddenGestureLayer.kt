@@ -15,6 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
+import com.vozsegura.shared.gesture.GesturePolicy
+import com.vozsegura.shared.gesture.HiddenGesture
+import com.vozsegura.shared.gesture.HiddenGestureDetector
 import com.vozsegura.wear.presentation.ambient.AmbientMode
 import com.vozsegura.wear.presentation.ambient.LocalAmbientState
 import kotlinx.coroutines.CoroutineScope

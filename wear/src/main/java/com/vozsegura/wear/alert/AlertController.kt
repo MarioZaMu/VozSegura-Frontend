@@ -4,7 +4,7 @@ import com.vozsegura.shared.model.AlertConfig
 import com.vozsegura.shared.model.AlertLocation
 import com.vozsegura.shared.model.AlertPayload
 import com.vozsegura.shared.model.CancelPayload
-import com.vozsegura.wear.gesture.HiddenGesture
+import com.vozsegura.shared.gesture.HiddenGesture
 import com.vozsegura.wear.haptics.Haptics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -33,7 +33,7 @@ class AlertController(
     private val session: AlertSession,
     private val locationProvider: LocationProvider,
     private val recorder: AudioClipRecorder,
-    /** Current user settings (contacts, message); synced from the phone in phase 6. */
+    /** Current user settings (contacts, message), as last synced from the phone. */
     private val config: () -> AlertConfig = { AlertConfig() },
     private val graceMs: Long = GRACE_MS,
     private val retryMs: Long = RETRY_MS,
@@ -48,8 +48,11 @@ class AlertController(
     private var location: Deferred<AlertLocation?>? = null
     private var captureFinished = false
 
-    private var alertId = ""
-    private var createdAtEpochMs = 0L
+    /** Id and trigger time of the current (or last) alert, for reporting it to the phone. */
+    var alertId = ""
+        private set
+    var createdAtEpochMs = 0L
+        private set
 
     fun onGesture(gesture: HiddenGesture) = dispatch(
         when (gesture) {

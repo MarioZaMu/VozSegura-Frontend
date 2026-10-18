@@ -61,6 +61,7 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.compose.ui.tooling)
     implementation(libs.play.services.wearable)
+    implementation(libs.kotlinx.coroutines.play.services)
     implementation(project(":shared"))
     implementation(libs.wear.compose.navigation)
     implementation(libs.androidx.wear)

@@ -61,6 +61,19 @@
             android:name=".alert.AlertService"
             android:exported="false"
             android:foregroundServiceType="microphone|location|dataSync" />
+
+        <!-- Receives contacts and settings from the phone app (Wearable Data Layer). -->
+        <service
+            android:name=".sync.PhoneSyncService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:path="/voz-segura/config" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

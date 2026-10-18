@@ -1,4 +1,4 @@
-package com.vozsegura.wear.gesture
+package com.vozsegura.shared.gesture
 
 import kotlin.math.hypot
 
@@ -27,7 +27,7 @@ data class GesturePolicy(
     val maxTapDistancePx: Float,
     /** Contact larger than this is a palm or wrist, not a fingertip. */
     val maxTouchMajorPx: Float,
-    /** Shorter than the grace window so a silent cancel is reachable (see AlertController.GRACE_MS). */
+    /** Shorter than the grace window so a silent cancel is reachable (see the watch AlertController.GRACE_MS). */
     val longPressMs: Long = 2_000,
     /** Ignore touches right after the screen wakes, so the wake tap never counts. */
     val wakeGuardMs: Long = 500,
@@ -50,7 +50,7 @@ data class GesturePolicy(
 
 /**
  * Framework-free double-tap / long-press recognizer. Times are monotonic milliseconds
- * (MotionEvent.eventTime), positions are pixels. Fed by [HiddenGestureLayer]; unit-tested directly.
+ * (MotionEvent.eventTime), positions are pixels. Fed by the watch HiddenGestureLayer and the phone practice pad; unit-tested directly.
  */
 class HiddenGestureDetector(private val policy: GesturePolicy) {
 

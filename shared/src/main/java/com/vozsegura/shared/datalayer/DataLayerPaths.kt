@@ -6,6 +6,6 @@ object DataLayerPaths {
     const val CONFIG = "/voz-segura/config"
     const val CONFIG_KEY = "config_json"
 
-    /** Message sent by the watch whenever an alert changes state. */
+    /** Message holding a serialized [com.vozsegura.shared.model.AlertUpdate], watch to phone. */
     const val ALERT_EVENT = "/voz-segura/alert-event"
 }

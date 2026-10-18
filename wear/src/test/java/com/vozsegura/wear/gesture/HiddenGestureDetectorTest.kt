@@ -1,5 +1,8 @@
 package com.vozsegura.wear.gesture
 
+import com.vozsegura.shared.gesture.GesturePolicy
+import com.vozsegura.shared.gesture.HiddenGesture
+import com.vozsegura.shared.gesture.HiddenGestureDetector
 import com.vozsegura.wear.alert.AlertController
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull

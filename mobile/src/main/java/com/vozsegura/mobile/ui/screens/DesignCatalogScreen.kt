@@ -39,9 +39,9 @@ import com.vozsegura.mobile.ui.theme.VsRadius
 import com.vozsegura.mobile.ui.theme.VsSpacing
 import com.vozsegura.shared.model.AlertState
 
-/** Temporary showcase of the design system (phase 2). Replaced by the real Home in phase 6. */
+/** Showcase of the design system (phase 2), kept for the case presentation; opened from Settings. */
 @Composable
-fun DesignCatalogScreen() {
+fun DesignCatalogScreen(onBack: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -50,6 +50,7 @@ fun DesignCatalogScreen() {
             .padding(horizontal = VsSpacing.screen, vertical = VsSpacing.xl),
         verticalArrangement = Arrangement.spacedBy(VsSpacing.md),
     ) {
+        VsIconButton(R.drawable.ic_back, stringResource(R.string.cd_back), onClick = onBack)
         Text(stringResource(R.string.catalog_title), style = MaterialTheme.typography.headlineLarge)
         Text(
             stringResource(R.string.catalog_subtitle),
@@ -150,5 +151,5 @@ private fun Swatch(color: Color) {
 @Preview(showBackground = true, backgroundColor = 0xFF0B0613, heightDp = 1400)
 @Composable
 private fun DesignCatalogPreview() {
-    VozSeguraTheme { DesignCatalogScreen() }
+    VozSeguraTheme { DesignCatalogScreen(onBack = {}) }
 }

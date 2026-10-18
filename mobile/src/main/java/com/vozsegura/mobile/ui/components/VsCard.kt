@@ -26,9 +26,12 @@ fun VsCard(
     val body: @Composable () -> Unit = {
         Column(modifier = Modifier.padding(contentPadding), content = content)
     }
+    // Explicit content color: Surface would otherwise pick onSurfaceVariant (secondary grey),
+    // because the card color equals the scheme's surfaceVariant.
+    val contentColor = VsColors.TextPrimary
     if (onClick != null) {
-        Surface(onClick = onClick, modifier = modifier, shape = shape, color = color, content = body)
+        Surface(onClick = onClick, modifier = modifier, shape = shape, color = color, contentColor = contentColor, content = body)
     } else {
-        Surface(modifier = modifier, shape = shape, color = color, content = body)
+        Surface(modifier = modifier, shape = shape, color = color, contentColor = contentColor, content = body)
     }
 }

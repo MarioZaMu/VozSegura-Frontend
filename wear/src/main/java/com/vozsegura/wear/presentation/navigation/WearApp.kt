@@ -9,7 +9,7 @@ import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import com.vozsegura.wear.BuildConfig
-import com.vozsegura.wear.gesture.HiddenGesture
+import com.vozsegura.shared.gesture.HiddenGesture
 import com.vozsegura.wear.gesture.HiddenGestureLayer
 import com.vozsegura.wear.haptics.HapticSignal
 import com.vozsegura.wear.presentation.ambient.AmbientState

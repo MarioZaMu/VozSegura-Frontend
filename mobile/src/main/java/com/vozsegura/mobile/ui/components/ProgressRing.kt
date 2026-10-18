@@ -25,7 +25,8 @@ import com.vozsegura.mobile.ui.theme.VsSize
 
 /**
  * Circular progress ring with a gradient arc over a flat track, starting at 12 o'clock.
- * [progress] is clamped to 0..1 and animated.
+ * [progress] is clamped to 0..1 and animated, unless the caller already animates it every
+ * frame ([animated] = false); re-targeting a tween each frame would make the arc lag behind.
  */
 @Composable
 fun ProgressRing(
@@ -35,13 +36,16 @@ fun ProgressRing(
     strokeWidth: Dp = VsSize.ringStroke,
     trackColor: Color = VsColors.SurfaceElevated,
     gradient: List<Color> = VsColors.RingGradient,
+    animated: Boolean = true,
     content: @Composable BoxScope.() -> Unit = {},
 ) {
-    val animated by animateFloatAsState(
-        targetValue = progress.coerceIn(0f, 1f),
+    val target = progress.coerceIn(0f, 1f)
+    val smoothed by animateFloatAsState(
+        targetValue = target,
         animationSpec = tween(durationMillis = 600),
         label = "ringProgress",
     )
+    val shown = if (animated) smoothed else target
     Box(modifier = modifier.size(size), contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val strokePx = strokeWidth.toPx()
@@ -62,7 +66,7 @@ fun ProgressRing(
                 drawArc(
                     brush = Brush.sweepGradient(gradient + gradient.first()),
                     startAngle = 0f,
-                    sweepAngle = 360f * animated,
+                    sweepAngle = 360f * shown,
                     useCenter = false,
                     topLeft = topLeft,
                     size = arcSize,

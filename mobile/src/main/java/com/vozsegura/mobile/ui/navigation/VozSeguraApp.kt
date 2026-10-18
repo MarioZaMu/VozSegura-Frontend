@@ -18,7 +18,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavHostController
 import com.vozsegura.mobile.ui.screens.ContactsScreen
+import com.vozsegura.mobile.ui.screens.DesignCatalogScreen
+import com.vozsegura.mobile.ui.screens.GestureTestScreen
 import com.vozsegura.mobile.ui.screens.HistoryScreen
 import com.vozsegura.mobile.ui.screens.HomeScreen
 import com.vozsegura.mobile.ui.screens.SettingsScreen
@@ -37,16 +40,7 @@ fun VozSeguraApp() {
                     val selected = currentDestination?.hasRoute(destination.route::class) == true
                     NavigationBarItem(
                         selected = selected,
-                        onClick = {
-                            navController.navigate(destination.route) {
-                                // Keep a single copy of each tab and restore its state.
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
+                        onClick = { navController.navigateToTab(destination) },
                         icon = {
                             Icon(
                                 painter = painterResource(destination.iconRes),
@@ -71,10 +65,31 @@ fun VozSeguraApp() {
             startDestination = HomeRoute,
             modifier = Modifier.padding(innerPadding),
         ) {
-            composable<HomeRoute> { HomeScreen() }
+            composable<HomeRoute> {
+                HomeScreen(
+                    onTestGesture = { navController.navigate(GestureTestRoute) },
+                    onOpenContacts = { navController.navigateToTab(TopLevelDestination.CONTACTS) },
+                    onOpenHistory = { navController.navigateToTab(TopLevelDestination.HISTORY) },
+                )
+            }
             composable<ContactsRoute> { ContactsScreen() }
             composable<HistoryRoute> { HistoryScreen() }
-            composable<SettingsRoute> { SettingsScreen() }
+            composable<SettingsRoute> {
+                SettingsScreen(onOpenDesignSystem = { navController.navigate(DesignCatalogRoute) })
+            }
+            composable<GestureTestRoute> { GestureTestScreen(onBack = navController::popBackStack) }
+            composable<DesignCatalogRoute> { DesignCatalogScreen(onBack = navController::popBackStack) }
         }
+    }
+}
+
+private fun NavHostController.navigateToTab(destination: TopLevelDestination) {
+    navigate(destination.route) {
+        // Keep a single copy of each tab and restore its state.
+        popUpTo(graph.findStartDestination().id) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
     }
 }
