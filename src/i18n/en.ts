@@ -7,6 +7,7 @@ export const en: Messages = {
     label: 'Views',
     watch: 'Watch',
     settings: 'Settings',
+    appearance: 'Appearance',
     contact: 'Contact',
     design: 'Design',
   },
@@ -211,8 +212,6 @@ export const en: Messages = {
     language: 'Language',
     system: 'System',
     watchNote: 'The watch always looks dark, like an ordinary watch.',
-    entry: 'Theme and language',
-    back: 'Back to Settings',
   },
   alertControl: {
     resolved: { safe: 'You told your contacts you are safe.', 'false-alarm': 'You told your contacts it was a false alarm.' },

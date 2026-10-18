@@ -347,7 +347,7 @@ app navigation for real alerts; `/alerta/demo` keeps it for the presentation.
 
 ## Light theme and languages (phase 12)
 
-- **Theme:** its own page `/configuracion/apariencia` (`AppearanceView` + `AppearanceSection`), opened from a row in Settings to keep Settings short. `lib/theme.ts` (`startTheme()` in
+- **Theme:** its own page `/configuracion/apariencia` (`AppearanceView` + `AppearanceSection`), a third pill in the top bar (also in the app), to keep Settings short. `lib/theme.ts` (`startTheme()` in
   main.tsx) sets `<html data-theme>` from the setting ("system" follows
   `prefers-color-scheme`) plus the `color-scheme` / `theme-color` metas. The light theme is
   an unlayered `:root[data-theme='light']` block in index.css that only overrides brand

@@ -7,11 +7,12 @@ import { buildContactAlertPath, routes } from './routes'
 const allNavItems = [
   { to: routes.watch, label: 'watch' },
   { to: routes.settings, label: 'settings' },
+  { to: routes.appearance, label: 'appearance' },
   { to: buildContactAlertPath('demo'), label: 'contact' },
   { to: routes.designSystem, label: 'design' },
 ] as const
 // The demo contact page and the style guide are for the PC presentation only.
-const navItems = isNativeApp() ? allNavItems.slice(0, 2) : allNavItems
+const navItems = isNativeApp() ? allNavItems.slice(0, 3) : allNavItems
 
 // Navigation between the views. Hidden on the full-screen watch: there, nothing but the
 // watch face may be visible.
@@ -39,7 +40,7 @@ export function RootLayout() {
           <NavLink
             key={item.to}
             to={item.to}
-            end={item.to === routes.watch}
+            end
             className={({ isActive }) =>
               `shrink-0 rounded-full px-3 py-2 text-body-sm sm:px-4 ${isActive ? 'bg-primary text-on-accent' : 'bg-surface text-text-secondary'}`
             }
