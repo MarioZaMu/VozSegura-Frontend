@@ -9,6 +9,7 @@ import { updateSettings, useSettings } from '../../features/settings/settingsSto
 import { isBackendConfigured } from '../../lib/config'
 import { isNativeApp } from '../../lib/platform'
 import { AlertControlSection } from './AlertControlSection'
+import { AppearanceSection } from './AppearanceSection'
 import { ContactsSection } from './ContactsSection'
 import { HistorySection } from './HistorySection'
 import { PermissionsSection } from './PermissionsSection'
@@ -69,6 +70,8 @@ export function SettingsView() {
           onChange={(checked) => updateSettings({ demoMode: checked })}
         />
       </Card>
+
+      <AppearanceSection />
 
       <HistorySection />
 

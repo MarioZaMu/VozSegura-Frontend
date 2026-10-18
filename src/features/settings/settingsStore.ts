@@ -3,12 +3,18 @@ import type { WatchShape } from '../../components/watch/watchShape'
 import { isNativeApp } from '../../lib/platform'
 import { readJson, writeJson } from '../../lib/storage'
 
+export type ThemePreference = 'dark' | 'light' | 'system'
+export type LanguagePreference = 'es' | 'en' | 'system'
+
 export type AppSettings = {
   /** Simulates microphone, location, AI and sending so the demo never depends on the room. */
   demoMode: boolean
   watchShape: WatchShape
   /** The Android app opens Settings until the user finishes it once ("Ir al reloj"). */
   onboarded: boolean
+  /** Settings and Contact only: the watch face is always dark. */
+  theme: ThemePreference
+  language: LanguagePreference
 }
 
 const STORAGE_KEY = 'voz-segura:settings:v1'
@@ -19,6 +25,8 @@ const defaultSettings: AppSettings = {
   demoMode: !isNativeApp(),
   watchShape: 'round',
   onboarded: false,
+  theme: 'dark',
+  language: 'system',
 }
 
 let settings: AppSettings = { ...defaultSettings, ...readJson<Partial<AppSettings>>(STORAGE_KEY, {}) }
@@ -28,7 +36,8 @@ function emit() {
   listeners.forEach((listener) => listener())
 }
 
-function subscribe(listener: () => void) {
+/** Also used outside React (theme, language). */
+export function subscribeSettings(listener: () => void): () => void {
   listeners.add(listener)
   return () => listeners.delete(listener)
 }
@@ -51,5 +60,5 @@ export function updateSettings(patch: Partial<AppSettings>): void {
 }
 
 export function useSettings(): AppSettings {
-  return useSyncExternalStore(subscribe, getSettings)
+  return useSyncExternalStore(subscribeSettings, getSettings)
 }
