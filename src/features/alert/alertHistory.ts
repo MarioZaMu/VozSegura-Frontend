@@ -13,6 +13,7 @@ export type AlertHistoryEntry = {
   delivered: boolean
   /** How the owner said it ended ("estoy bien" / false alarm), once they did. */
   resolution?: Resolution
+  resolvedAt?: number
 }
 
 export type Resolution = 'safe' | 'false-alarm'
@@ -39,11 +40,15 @@ export function recordAlert(entry: AlertHistoryEntry): void {
 }
 
 export function setAlertResolution(alertId: string, resolution: Resolution): void {
-  save(history.map((item) => (item.alertId === alertId ? { ...item, resolution } : item)))
+  save(history.map((item) => (item.alertId === alertId ? { ...item, resolution, resolvedAt: Date.now() } : item)))
 }
 
 export function clearAlertHistory(): void {
   save([])
+}
+
+export function getAlertHistory(): AlertHistoryEntry[] {
+  return history
 }
 
 export function useAlertHistory(): AlertHistoryEntry[] {

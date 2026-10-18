@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AlertNotFoundError, fetchAlertView, isFinal, type AlertView } from './alertView'
 import { demoAlertView } from './demoAlertView'
+import { currentDemoTimeline } from './demoTimeline'
 
 const POLL_MS = 5000
 const DEMO_TICK_MS = 1000
@@ -23,7 +24,8 @@ export function useAlertView(alertId: string): AlertViewState {
   useEffect(() => {
     if (alertId === 'demo') {
       const openedAt = Date.now()
-      const tick = () => setState({ view: demoAlertView(openedAt, Date.now()), notFound: false, offline: false })
+      const tick = () =>
+        setState({ view: demoAlertView(currentDemoTimeline(openedAt), Date.now()), notFound: false, offline: false })
       const first = window.setTimeout(tick, 0)
       const id = window.setInterval(tick, DEMO_TICK_MS)
       return () => {
