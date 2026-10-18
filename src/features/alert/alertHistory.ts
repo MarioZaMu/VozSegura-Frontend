@@ -11,7 +11,11 @@ export type AlertHistoryEntry = {
   kind: AlertCapture['kind']
   /** False in demo mode or without a backend: nobody was notified. */
   delivered: boolean
+  /** How the owner said it ended ("estoy bien" / false alarm), once they did. */
+  resolution?: Resolution
 }
+
+export type Resolution = 'safe' | 'false-alarm'
 
 const STORAGE_KEY = 'voz-segura:alert-history:v1'
 const MAX_ENTRIES = 20
@@ -32,6 +36,10 @@ function save(next: AlertHistoryEntry[]) {
 
 export function recordAlert(entry: AlertHistoryEntry): void {
   save([entry, ...history.filter((item) => item.alertId !== entry.alertId)].slice(0, MAX_ENTRIES))
+}
+
+export function setAlertResolution(alertId: string, resolution: Resolution): void {
+  save(history.map((item) => (item.alertId === alertId ? { ...item, resolution } : item)))
 }
 
 export function clearAlertHistory(): void {

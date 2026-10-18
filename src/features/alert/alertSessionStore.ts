@@ -7,7 +7,7 @@ import { defaultCaptureOptions, type AlertCapture, type CaptureEvent, type StopR
 import { alertSessionReducer, initialAlertSession, type AlertAction, type AlertSession } from './alertSession'
 import { recordAlert } from './alertHistory'
 import { createDemoCapture } from './demoCapture'
-import { createNativeCapture, isNativeCaptureRunning, stopNativeCapture } from './nativeCapture'
+import { createNativeCapture, runningNativeAlertId, stopNativeCapture } from './nativeCapture'
 import { createWebCapture } from './webCapture'
 import { withWebDelivery } from './webDelivery'
 
@@ -88,12 +88,32 @@ export const MIN_ALERT_AGE_TO_STOP_MS = 3000
 
 // The Android service may still be recording an alert started before the app was reopened
 // (this JS session knows nothing about it). Checked once at startup.
-let orphanNativeAlert = false
+let orphanNativeAlertId: string | null = null
 if (isNativeApp()) {
-  isNativeCaptureRunning().then(
-    (running) => (orphanNativeAlert = running),
+  runningNativeAlertId().then(
+    (alertId) => {
+      orphanNativeAlertId = alertId
+      listeners.forEach((listener) => listener())
+    },
     () => {},
   )
+}
+
+/** Alert still recording that this JS session did not start (see above). */
+export function getOrphanNativeAlertId(): string | null {
+  return orphanNativeAlertId
+}
+
+function stopOrphanNativeAlert() {
+  orphanNativeAlertId = null
+  listeners.forEach((listener) => listener())
+  void stopNativeCapture().catch(() => {})
+}
+
+/** "Detener alerta" in Settings: whatever is recording, with no minimum age. */
+export async function stopAnyAlert(): Promise<void> {
+  if (session.status === 'active') return stopAlert('user')
+  if (orphanNativeAlertId) stopOrphanNativeAlert()
 }
 
 /** Triple tap on the watch. Returns true when it stopped an alert. */
@@ -103,9 +123,8 @@ export function stopAlertFromGesture(now = Date.now()): boolean {
     void stopAlert('user')
     return true
   }
-  if (orphanNativeAlert) {
-    orphanNativeAlert = false
-    void stopNativeCapture().catch(() => {})
+  if (orphanNativeAlertId) {
+    stopOrphanNativeAlert()
     return true
   }
   return false
@@ -113,4 +132,8 @@ export function stopAlertFromGesture(now = Date.now()): boolean {
 
 export function useAlertSession(): AlertSession {
   return useSyncExternalStore(subscribe, getAlertSession)
+}
+
+export function useOrphanNativeAlertId(): string | null {
+  return useSyncExternalStore(subscribe, getOrphanNativeAlertId)
 }

@@ -1,6 +1,7 @@
 import { config } from '../../lib/config'
 import { getDeviceId } from '../../lib/deviceId'
 import type { LocationFix, StopReason } from './alertCapture'
+import type { Resolution } from './alertHistory'
 
 // Client for the backend write endpoints (same contract the Android service uses in Java).
 
@@ -63,4 +64,9 @@ export function postAudioChunk(alertId: string, index: number, durationMs: numbe
 
 export function postStop(alertId: string, reason: StopReason, totalChunks: number): Promise<void> {
   return sendWithRetry('/api/stop', jsonInit({ alertId, reason, totalChunks }))
+}
+
+/** "Estoy bien" / false alarm. The backend only accepts it from the device that raised the alert. */
+export function postResolve(alertId: string, resolution: Resolution): Promise<void> {
+  return sendWithRetry('/api/resolve', jsonInit({ alertId, deviceId: getDeviceId(), resolution }))
 }
