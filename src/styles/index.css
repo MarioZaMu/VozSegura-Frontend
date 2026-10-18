@@ -110,6 +110,8 @@
   --animate-screen-in: screen-in 400ms var(--ease-out-soft) both;
   /* Visual fallback for haptics (iPhone): a dip so small it reads as a normal refresh */
   --animate-subtle-blink: subtle-blink 350ms var(--ease-in-out-soft);
+  /* Contact view: "live" dot and map marker while the alert is active */
+  --animate-live-pulse: live-pulse 1.6s var(--ease-in-out-soft) infinite;
 
   @keyframes fade-in {
     from {
@@ -123,12 +125,28 @@
     }
   }
 
+  @keyframes live-pulse {
+    50% {
+      opacity: 0.35;
+    }
+  }
+
   @keyframes screen-in {
     from {
       opacity: 0;
       transform: translateY(0.5rem) scale(0.98);
     }
   }
+}
+
+/* Contact view map: OpenStreetMap tiles turned dark (light tiles would glare at night).
+   Unlayered on purpose: Leaflet's own CSS is unlayered and would beat a Tailwind utility. */
+.map-dark.leaflet-container {
+  background-color: var(--color-surface-raised);
+}
+
+.map-dark .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9);
 }
 
 /* Brand gradient, used only in Settings and Contact */
