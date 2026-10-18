@@ -23,6 +23,8 @@ function toSample(event: ReactPointerEvent): PointerSample {
  */
 export function useDoubleTap(onEvent: (event: GestureEvent) => void, options?: Partial<DoubleTapOptions>) {
   const onEventRef = useRef(onEvent)
+  // Options are read once when the detector is created; runtime changes are not supported.
+  const optionsRef = useRef(options)
   const detectorRef = useRef<DoubleTapDetector | null>(null)
 
   useEffect(() => {
@@ -30,7 +32,7 @@ export function useDoubleTap(onEvent: (event: GestureEvent) => void, options?: P
   }, [onEvent])
 
   useEffect(() => {
-    const detector = new DoubleTapDetector((event) => onEventRef.current(event), options)
+    const detector = new DoubleTapDetector((event) => onEventRef.current(event), optionsRef.current)
     detectorRef.current = detector
     detector.arm(performance.now())
 
@@ -41,7 +43,6 @@ export function useDoubleTap(onEvent: (event: GestureEvent) => void, options?: P
     }
     document.addEventListener('visibilitychange', handleVisibility)
     return () => document.removeEventListener('visibilitychange', handleVisibility)
-    // Options are read once; changing them at runtime is not supported.
   }, [])
 
   return {
