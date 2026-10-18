@@ -39,6 +39,7 @@ rewrites every path to `index.html` so client routes survive a reload.
 ```
 src/
   app/        router, route paths, root layout
+  components/ ui/ (generic base components), watch/ (mockup and screen)
   views/      one folder per view: watch/, settings/, contact/
   lib/        framework-free helpers (config, storage, api…)
   styles/     index.css with Tailwind @theme design tokens
@@ -51,15 +52,41 @@ src/
 | `/`                | WatchView        | The person at risk (watch)         |
 | `/configuracion`   | SettingsView     | Companion app: contacts, history…  |
 | `/alerta/:alertId` | ContactAlertView | The trusted contact who got a link |
+| `/sistema-diseno`  | DesignSystemView | Style guide (dev + case study)     |
 
 ## Design system
 
+Living style guide at `/sistema-diseno` (DesignSystemView).
+
 Tokens live in `src/styles/index.css` inside `@theme` (Tailwind v4 has no
-`tailwind.config.js`; `@theme` is its equivalent). Never use raw values in components.
-Palette: background `#0B0613`, surface `#1A1225`, raised `#2A2236`, primary `#C026D3`,
-gradient `#D946EF → #8B5CF6`, text `#FFFFFF` / `#9A93A8`, danger `#E53935`. Font Poppins.
-The idle watch face and the active state must look like an ordinary watch: no magenta
-or anything that reveals the feature. Strong accents only in Settings and Contact.
+`tailwind.config.js`; `@theme` is its equivalent). Tailwind's default colors, font
+sizes, radii, shadows and easings are **reset** (`--color-*: initial`…), so only our
+tokens exist as classes. Never use arbitrary values (`[..]`) in components.
+
+- **Brand colors** (Settings, Contact): `background` #0B0613, `surface` #1A1225,
+  `surface-raised` #2A2236, `primary` #C026D3, `gradient-from/to` #D946EF → #8B5CF6
+  (utilities `bg-brand-gradient`, `text-brand-gradient`), `text-primary` #FFF,
+  `text-secondary` #9A93A8, `danger` #E53935.
+- **Watch colors** (idle + active face, neutral on purpose): `watch-face` #000,
+  `watch-text`, `watch-muted`, `watch-track`, `watch-activity` (muted green).
+  The idle and active states must look like an ordinary watch: never brand magenta there.
+- **Device colors** (PC mockup only): `device-case`, `device-bezel`, `device-strap`,
+  `device-highlight`.
+- **Type:** Poppins self-hosted via `@fontsource/poppins` (works offline in the classroom).
+  Scale `caption · body-sm · body · title · headline · display`. Watch text uses
+  container-query units (`text-watch-time/date/label`, in `cqi`) so it scales with the
+  watch screen, which is an `@container`.
+- **Spacing:** Tailwind's 4px scale plus `touch` (48px min target), `gutter`, `section`,
+  `watch-screen` (20rem, shrinks on narrow screens), `content`.
+- **Radius:** `sm md lg card full`, `watch-square` (22%). **Shadow:** `card glow device`.
+- **Motion:** `ease-out-soft`, `ease-in-out-soft`, `animate-fade-in`, `animate-screen-in`;
+  `prefers-reduced-motion` disables animations.
+- **Icons:** lucide-react (line icons).
+
+Components: `components/ui/` Button (primary/secondary/danger/ghost, ≥48px), Card,
+ProgressRing (brand/watch/danger tones, 0–1 value), SegmentedControl;
+`components/watch/` WatchDevice (PC mockup), WatchScreen (the display, reused full
+screen on the phone), `watchShape.ts` (round | square).
 
 ## Decisions
 
@@ -80,7 +107,7 @@ or anything that reveals the feature. Strong accents only in Settings and Contac
 ## Phases
 
 1. ✅ Setup: repos, Vite + React + TS + Tailwind, structure, routes, docs
-2. Design system: tokens, typography, base components, watch mockup round/square
+2. ✅ Design system: tokens, typography, base components, watch mockup round/square
 3. Idle watch face, full-screen watch mode on phone, demo mode switch
 4. Double-tap detection (accidental-tap prevention) + discreet vibration
 5. Active state: real audio + location, without revealing anything
