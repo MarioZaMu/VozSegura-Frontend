@@ -321,11 +321,14 @@ app navigation for real alerts; `/alerta/demo` keeps it for the presentation.
 
 ## Android app
 
-- appId `com.mariozamu.vozsegura`, name "Voz Segura" (a discreet name/icon is a phase 11
-  decision), `webDir: dist` (`capacitor.config.ts`).
+- appId `com.mariozamu.vozsegura`, name "Voz Segura", `webDir: dist` (`capacitor.config.ts`).
 - `MainActivity.java` hides status and navigation bars (immersive; swipe shows them
-  briefly). Manifest locks portrait. Launch screen and window background are black; the
-  launcher icon is a neutral watch face vector (`res/drawable/ic_launcher_watch.xml`).
+  briefly). Manifest locks portrait. Launch screen and window background are black.
+- **Logo** (user-provided set): launcher PNGs per density in `mipmap-*`, adaptive icon
+  (`mipmap-anydpi-v26`) with `drawable-nodpi/ic_launcher_logo.png` on `#0B0613` plus a
+  monochrome layer (Android 13 themed icons); the same foreground is the splash icon. Web:
+  `public/` favicon.ico/svg, apple-touch-icon, PWA icons + `manifest.webmanifest`; in the UI
+  `components/ui/Logo.tsx` (Settings and contact view only, never on the watch).
 - **`DiscreetHapticsPlugin.java`** (local plugin, registered in `MainActivity`) vibrates
   with `USAGE_ALARM`. Logcat on the user's Xiaomi showed both Chrome and
   `@capacitor/haptics` vibrations (`USAGE=TOUCH`) ending `IGNORED_FOR_SETTINGS` because touch
