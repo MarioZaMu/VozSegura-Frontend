@@ -106,10 +106,18 @@
   --animate-*: initial;
   --animate-fade-in: fade-in 300ms var(--ease-out-soft) both;
   --animate-screen-in: screen-in 400ms var(--ease-out-soft) both;
+  /* Visual fallback for haptics (iPhone): a dip so small it reads as a normal refresh */
+  --animate-subtle-blink: subtle-blink 350ms var(--ease-in-out-soft);
 
   @keyframes fade-in {
     from {
       opacity: 0;
+    }
+  }
+
+  @keyframes subtle-blink {
+    50% {
+      opacity: 0.72;
     }
   }
 
