@@ -1,10 +1,10 @@
-import { MapPin, Mic, ShieldAlert, Square } from 'lucide-react'
+import { MapPin, Mic, Send, ShieldAlert, Square } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { cx } from '../../lib/cx'
 import type { CaptureSource } from './alertCapture'
-import type { AlertSession, SourceStatus } from './alertSession'
+import type { AlertSession, DeliveryState, SourceStatus } from './alertSession'
 import { stopAlert } from './alertSessionStore'
 
 type AlertDiagnosticsProps = {
@@ -27,6 +27,21 @@ const sourceLabels: Record<SourceStatus, string> = { pending: 'iniciando…', on
 const sourceIcons: Record<CaptureSource, ReactNode> = {
   microphone: <Mic size={14} />,
   location: <MapPin size={14} />,
+}
+
+const alertDeliveryLabels: Record<DeliveryState['alert'], string> = {
+  off: 'sin envío (modo demo o backend sin configurar)',
+  sending: 'enviando alerta…',
+  sent: 'alerta enviada a los contactos',
+  failed: 'no se pudo enviar la alerta',
+}
+
+function describeDelivery(delivery: DeliveryState): string {
+  if (delivery.alert === 'off') return alertDeliveryLabels.off
+  const parts = [alertDeliveryLabels[delivery.alert], `${delivery.locationsSent} ubicaciones`, `${delivery.chunksUploaded} audios subidos`]
+  if (delivery.chunksFailed > 0) parts.push(`${delivery.chunksFailed} audios fallidos`)
+  if (delivery.stop !== 'pending') parts.push(delivery.stop === 'sent' ? 'cierre enviado' : 'cierre fallido')
+  return parts.join(' · ')
 }
 
 function formatElapsed(ms: number): string {
@@ -85,6 +100,18 @@ export function AlertDiagnostics({ session, now }: AlertDiagnosticsProps) {
               </li>
             ))}
           </ul>
+
+          <p className="flex items-center gap-3">
+            <span
+              className={cx(
+                'grid size-6 shrink-0 place-items-center rounded-full bg-surface-raised',
+                session.delivery.alert === 'failed' ? 'text-danger' : 'text-text-secondary',
+              )}
+            >
+              <Send size={14} />
+            </span>
+            <span className="flex-1">Envío: {describeDelivery(session.delivery)}</span>
+          </p>
 
           {errors.length > 0 && (
             <ul className="flex flex-col gap-1 text-caption text-danger">
