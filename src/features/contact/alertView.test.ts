@@ -24,6 +24,8 @@ const view = (overrides: Partial<AlertView> = {}): AlertView => ({
   summaryStatus: 'ready',
   summaryUpdatedAt: 100_000,
   chunks: [chunk(0), chunk(1)],
+  resolution: 'safe',
+  resolvedAt: 150_000,
   ...overrides,
 })
 
@@ -40,6 +42,11 @@ describe('isFinal', () => {
   it('waits for pending transcripts and summaries in progress', () => {
     expect(isFinal(view({ chunks: [chunk(0, { transcriptStatus: 'pending' })] }), 200_000)).toBe(false)
     expect(isFinal(view({ summaryStatus: 'generating' }), 200_000)).toBe(false)
+  })
+
+  it('keeps checking for a while whether the owner says how it ended', () => {
+    expect(isFinal(view({ resolution: null, resolvedAt: null }), 200_000)).toBe(false)
+    expect(isFinal(view({ resolution: null, resolvedAt: null }), 100_000 + 16 * 60_000)).toBe(true)
   })
 
   it('gives up waiting when a stopped alert never got audio', () => {

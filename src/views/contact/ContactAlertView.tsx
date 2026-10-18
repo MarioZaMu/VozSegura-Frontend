@@ -1,4 +1,4 @@
-import { ArrowLeft, AudioLines, Loader2, MapPin, Navigation, Phone, Sparkles, WifiOff } from 'lucide-react'
+import { ArrowLeft, AudioLines, HeartHandshake, Info, Loader2, MapPin, Navigation, Phone, Sparkles, WifiOff } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 import { routes } from '../../app/routes'
@@ -36,16 +36,17 @@ const linkButton = cx(
 
 function Header({ view, now }: { view: AlertView; now: number }) {
   const active = view.status === 'active'
+  const resolved = view.resolution !== null && !active
   return (
     <header className="flex flex-col gap-3 pt-2">
       <span
         className={cx(
           'inline-flex items-center gap-2 self-start rounded-full px-3 py-1 text-caption font-semibold',
-          active ? 'bg-danger text-text-primary' : 'bg-surface-raised text-text-secondary',
+          active ? 'bg-danger text-text-primary' : resolved ? 'bg-success/15 text-success' : 'bg-surface-raised text-text-secondary',
         )}
       >
         <span className={cx('size-2 rounded-full bg-current', active && 'animate-live-pulse')} />
-        {active ? 'Alerta en curso' : 'Alerta finalizada'}
+        {active ? 'Alerta en curso' : resolved ? (view.resolution === 'safe' ? 'Está bien' : 'Falsa alarma') : 'Alerta finalizada'}
       </span>
       <h1 className="text-headline font-semibold">
         {ownerLabel(view)} activó una alerta silenciosa
@@ -60,6 +61,36 @@ function Header({ view, now }: { view: AlertView; now: number }) {
         <blockquote className="rounded-lg border-l-4 border-primary bg-surface p-4 text-body-sm">“{view.message}”</blockquote>
       )}
     </header>
+  )
+}
+
+// The owner said how it ended: the most important news, so it goes right under the title.
+function ResolutionBanner({ view }: { view: AlertView }) {
+  if (!view.resolution) return null
+  const safe = view.resolution === 'safe'
+  const time = view.resolvedAt ? ` a las ${formatWatchTime(new Date(view.resolvedAt))}` : ''
+  return (
+    <div
+      className={cx(
+        'flex items-start gap-3 rounded-lg border p-4 text-body-sm animate-fade-in',
+        safe ? 'border-success bg-success/15' : 'border-surface-raised bg-surface',
+      )}
+      role="status"
+    >
+      {safe ? <HeartHandshake size={22} className="shrink-0 text-success" /> : <Info size={22} className="shrink-0 text-primary" />}
+      <p>
+        {safe ? (
+          <>
+            <b>{ownerLabel(view)} avisó que está bien</b>
+            {time}. Gracias por estar pendiente.
+          </>
+        ) : (
+          <>
+            <b>Falsa alarma:</b> {ownerLabel(view)} activó la alerta por error{time}. No hace falta hacer nada.
+          </>
+        )}
+      </p>
+    </div>
   )
 }
 
@@ -200,6 +231,7 @@ export function ContactAlertView() {
         </Link>
       )}
       <Header view={view} now={now} />
+      <ResolutionBanner view={view} />
       {offline && (
         <p className="flex items-center gap-2 rounded-lg bg-surface p-3 text-body-sm text-warning" role="status">
           <WifiOff size={16} /> Sin conexión: mostrando los últimos datos. Reintentando…

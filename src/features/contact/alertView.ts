@@ -2,6 +2,7 @@
 // helpers to describe it. Framework-free so it is unit tested (alertView.test.ts).
 import { config } from '../../lib/config'
 import type { LocationFix } from '../alert/alertCapture'
+import type { Resolution } from '../alert/alertHistory'
 
 export type SummaryStatus = 'waiting' | 'generating' | 'ready' | 'error'
 export type TranscriptStatus = 'pending' | 'done' | 'error'
@@ -30,6 +31,9 @@ export type AlertView = {
   summaryStatus: SummaryStatus
   summaryUpdatedAt: number | null
   chunks: AlertViewChunk[]
+  /** Set when the owner says "estoy bien" or that it was a false alarm. */
+  resolution: Resolution | null
+  resolvedAt: number | null
 }
 
 type AlertResponse = Omit<AlertView, 'chunks'> & {
@@ -52,6 +56,8 @@ export async function fetchAlertView(id: string): Promise<AlertView> {
     ...data,
     ownerName: data.ownerName ?? '',
     message: data.message ?? '',
+    resolution: data.resolution ?? null,
+    resolvedAt: data.resolvedAt ?? null,
     chunks: [...data.chunks]
       .sort((a, b) => a.index - b.index)
       .map(({ audioPath, ...chunk }) => ({ ...chunk, audioUrl: `${config.apiBaseUrl}${audioPath}` })),
@@ -67,9 +73,13 @@ export function isAlertId(value: string | undefined): value is string {
 /** After this long without a summary, a stopped alert with no audio is considered closed. */
 const NO_AUDIO_GRACE_MS = 2 * 60_000
 
+/** How long after the stop the view keeps checking whether the owner says how it ended. */
+const RESOLUTION_WAIT_MS = 15 * 60_000
+
 /** Nothing more will change: polling can stop. */
 export function isFinal(view: AlertView, now: number): boolean {
   if (view.status !== 'stopped') return false
+  if (!view.resolution && view.stoppedAt !== null && now - view.stoppedAt < RESOLUTION_WAIT_MS) return false
   if (view.summaryStatus === 'ready' || view.summaryStatus === 'error') {
     return view.chunks.every((chunk) => chunk.transcriptStatus !== 'pending')
   }

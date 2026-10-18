@@ -10,6 +10,8 @@ const STOP_AT_S = 100
 const CHUNK_S = 20
 const TRANSCRIBE_DELAY_S = 6
 const SUMMARY_DELAY_S = 4
+/** Laura says "estoy bien" a little after the final summary. */
+const RESOLVED_AT_S = 135
 
 const transcripts = [
   'Ya salí de clase, voy caminando hacia la estación. Hay un carro que lleva rato detrás de mí.',
@@ -78,6 +80,7 @@ export function demoAlertView(openedAt: number, now: number): AlertView {
   const generating = transcribed > 0 && elapsed < lastTranscribedAt + SUMMARY_DELAY_S
   const summaryIndex = Math.min(Math.max(transcribed - (generating ? 2 : 1), -1), summaries.length - 1)
   const allDone = stopped && transcribed === chunks.length && !generating
+  const resolved = elapsed >= RESOLVED_AT_S
 
   return {
     id: 'demo',
@@ -93,5 +96,7 @@ export function demoAlertView(openedAt: number, now: number): AlertView {
     summaryStatus: allDone ? 'ready' : generating ? 'generating' : summaryIndex >= 0 ? 'ready' : 'waiting',
     summaryUpdatedAt: summaryIndex >= 0 || allDone ? startedAt + (lastTranscribedAt + SUMMARY_DELAY_S) * 1000 : null,
     chunks,
+    resolution: resolved ? 'safe' : null,
+    resolvedAt: resolved ? startedAt + RESOLVED_AT_S * 1000 : null,
   }
 }
