@@ -1,0 +1,29 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens. Phase 2 extends this with typography, spacing and radii.
+ * Never use raw color values in components: always go through these tokens.
+ */
+@theme {
+  --color-background: #0b0613;
+  --color-surface: #1a1225;
+  --color-surface-raised: #2a2236;
+  --color-primary: #c026d3;
+  --color-gradient-from: #d946ef;
+  --color-gradient-to: #8b5cf6;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #9a93a8;
+  --color-danger: #e53935;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-text-primary antialiased;
+  }
+}
