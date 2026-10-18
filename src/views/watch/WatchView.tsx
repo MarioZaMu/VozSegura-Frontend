@@ -6,10 +6,12 @@ import { WatchDevice } from '../../components/watch/WatchDevice'
 import { WatchScreen } from '../../components/watch/WatchScreen'
 import { watchShapeLabels, type WatchShape } from '../../components/watch/watchShape'
 import { GestureDiagnostics } from '../../features/gesture/GestureDiagnostics'
+import { MobileDebugPanel } from '../../features/gesture/MobileDebugPanel'
 import { usePanicGesture } from '../../features/gesture/usePanicGesture'
 import { updateSettings, useSettings } from '../../features/settings/settingsStore'
 import { useWatchDisplayMode } from '../../features/watch/useWatchDisplayMode'
 import { WatchFace } from '../../features/watch-face/WatchFace'
+import { isDebugEnabled } from '../../lib/debug'
 import { canVibrate } from '../../lib/haptics'
 import { useNow } from '../../lib/useNow'
 
@@ -74,6 +76,7 @@ export function WatchView() {
             <WatchFace now={now} />
           </TouchSurface>
         </WatchScreen>
+        {isDebugEnabled() && <MobileDebugPanel events={events} />}
       </main>
     )
   }
