@@ -28,10 +28,24 @@ audio con IA) está en [VozSegura-backend](https://github.com/MarioZaMu/VozSegur
 - **En el PC** se ve el mockup del reloj y arriba la navegación entre las vistas (Reloj,
   Configuración, Contacto demo y Diseño). Haz doble clic rápido en la carátula para probar
   el gesto.
-- **En el celular** el reloj ocupa toda la pantalla; desde el menú del navegador se puede
-  "Agregar a la pantalla principal". Para grabar con la pantalla bloqueada usa la app
-  Android (ver [App Android](#app-android-capacitor)).
+- **En el celular** el reloj ocupa toda la pantalla y se puede instalar ("Agregar a la
+  pantalla principal"); después abre aunque no haya internet. Para grabar con la pantalla
+  bloqueada usa la app Android: descarga la APK de
+  [Releases](https://github.com/MarioZaMu/VozSegura-Frontend/releases/latest).
 - Activa el **modo demo** en Configuración para probar sin avisar a nadie.
+
+### Recorrido para una presentación (PC)
+
+1. Con el **modo demo** activo, haz doble clic rápido en la carátula: la alerta empieza
+   (sin cambios en la carátula) y debajo aparece el chat de Telegram simulado.
+2. Toca *Ver lo que recibe tu contacto*: la vista Contacto muestra esa misma alerta en
+   vivo (mapa, audio con transcripción y resumen de la IA que se va actualizando).
+3. Vuelve al reloj y haz **triple clic** (o *Detener*): llega el mensaje final.
+4. En Configuración toca *Avisar que estoy bien*: la vista Contacto y el chat lo muestran.
+
+Sin una alerta demo activa, `/alerta/demo` reproduce una alerta de ejemplo de 100 s.
+
+Guion para probar la app con usuarios: [docs/pruebas-usabilidad.md](docs/pruebas-usabilidad.md).
 
 ## Stack
 
@@ -67,7 +81,14 @@ Requisitos: Android Studio instalado (trae el JDK y el SDK de Android).
 npm run android:sync     # build web + copia a android/
 npm run android:build    # genera android/app/build/outputs/apk/debug/app-debug.apk
 npm run android:install  # instala el APK en el celular conectado por USB
+npm run android:release  # APK firmada para compartir: release/VozSegura-<versión>.apk
 ```
+
+La APK release se firma con una clave que **no está en el repo**
+(`~/.vozsegura/keystore.properties` y el `.jks` que indica). Guárdala: sin la misma clave
+no se pueden publicar actualizaciones que se instalen encima. La APK de depuración y la
+release tienen firmas distintas, así que para pasar de una a otra hay que desinstalar la
+app (se pierden el historial y el identificador del dispositivo).
 
 Para instalar por USB, activa en el celular *Opciones de desarrollador → Depuración USB*.
 También puedes copiar el APK al celular e instalarlo a mano (permite "instalar apps de
