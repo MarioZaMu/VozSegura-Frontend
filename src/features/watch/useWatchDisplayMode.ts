@@ -1,8 +1,10 @@
 import { useSyncExternalStore } from 'react'
+import { isNativeApp } from '../../lib/platform'
 
 /**
  * mockup     → PC: the watch is drawn as a device with controls around it.
- * fullscreen → phone: the screen fills the viewport, black background, nothing else.
+ * fullscreen → phone (Android app, installed PWA or phone browser): the screen fills the
+ *              viewport, black background, nothing else.
  */
 export type WatchDisplayMode = 'mockup' | 'fullscreen'
 
@@ -13,6 +15,8 @@ const FULLSCREEN_QUERY =
 const VIEW_PARAM = 'vista'
 
 function getMode(): WatchDisplayMode {
+  // The Android app is always the watch itself.
+  if (isNativeApp()) return 'fullscreen'
   // Manual override for testing: ?vista=reloj or ?vista=mockup
   const forced = new URLSearchParams(window.location.search).get(VIEW_PARAM)
   if (forced === 'reloj') return 'fullscreen'
