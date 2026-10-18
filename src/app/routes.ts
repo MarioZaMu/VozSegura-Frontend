@@ -3,6 +3,7 @@
 export const routes = {
   watch: '/',
   settings: '/configuracion',
+  appearance: '/configuracion/apariencia',
   contactAlert: '/alerta/:alertId',
   designSystem: '/sistema-diseno',
 } as const

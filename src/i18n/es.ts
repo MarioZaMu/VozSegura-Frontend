@@ -218,6 +218,8 @@ export const es = {
     language: 'Idioma',
     system: 'Sistema',
     watchNote: 'El reloj siempre se ve oscuro, como un reloj normal.',
+    entry: 'Tema e idioma',
+    back: 'Volver a Configuración',
   },
   alertControl: {
     resolved: { safe: 'Avisaste a tus contactos que estás bien.', 'false-alarm': 'Avisaste a tus contactos que fue una falsa alarma.' },

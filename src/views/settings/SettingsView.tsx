@@ -1,5 +1,5 @@
-import { FlaskConical, Watch } from 'lucide-react'
-import { useNavigate } from 'react-router'
+import { ChevronRight, FlaskConical, Palette, Watch } from 'lucide-react'
+import { Link, useNavigate } from 'react-router'
 import { routes } from '../../app/routes'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
@@ -10,7 +10,6 @@ import { useT } from '../../i18n/useT'
 import { isBackendConfigured } from '../../lib/config'
 import { isNativeApp } from '../../lib/platform'
 import { AlertControlSection } from './AlertControlSection'
-import { AppearanceSection } from './AppearanceSection'
 import { ContactsSection } from './ContactsSection'
 import { HistorySection } from './HistorySection'
 import { PermissionsSection } from './PermissionsSection'
@@ -21,7 +20,8 @@ import { ProfileSection } from './ProfileSection'
 // it is reached only with a 2-second press on the watch, so nothing on the watch hints at it.
 export function SettingsView() {
   const { demoMode, onboarded } = useSettings()
-  const t = useT().settings
+  const all = useT()
+  const t = all.settings
   const navigate = useNavigate()
   const firstRun = isNativeApp() && !onboarded
   const backend = isBackendConfigured()
@@ -66,7 +66,19 @@ export function SettingsView() {
         />
       </Card>
 
-      <AppearanceSection />
+      <Link
+        to={routes.appearance}
+        className="flex min-h-touch items-center gap-3 rounded-card bg-surface p-5 shadow-card focus-visible:outline-2 focus-visible:outline-primary"
+      >
+        <span className="grid size-10 place-items-center rounded-full bg-surface-raised text-primary">
+          <Palette size={20} />
+        </span>
+        <span className="flex-1">
+          <span className="block text-title font-semibold">{all.appearance.title}</span>
+          <span className="block text-body-sm text-text-secondary">{all.appearance.entry}</span>
+        </span>
+        <ChevronRight size={20} className="text-text-secondary" />
+      </Link>
 
       <HistorySection />
 

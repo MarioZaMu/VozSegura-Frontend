@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router'
 import { DesignSystemView } from '../views/design-system/DesignSystemView'
 import { NotFoundView } from '../views/NotFoundView'
+import { AppearanceView } from '../views/settings/AppearanceView'
 import { SettingsView } from '../views/settings/SettingsView'
 import { WatchView } from '../views/watch/WatchView'
 import { RootLayout } from './RootLayout'
@@ -12,6 +13,7 @@ export const router = createBrowserRouter([
     children: [
       { path: routes.watch, element: <WatchView /> },
       { path: routes.settings, element: <SettingsView /> },
+      { path: routes.appearance, element: <AppearanceView /> },
       // Loaded on demand: it carries Leaflet, which the watch never needs.
       {
         path: routes.contactAlert,
