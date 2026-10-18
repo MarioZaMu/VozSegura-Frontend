@@ -1,4 +1,5 @@
 import { config } from '../../lib/config'
+import { getLanguage } from '../../i18n/currentLanguage'
 import { getDeviceId } from '../../lib/deviceId'
 import type { LocationFix, StopReason } from './alertCapture'
 import type { Resolution } from './alertHistory'
@@ -52,7 +53,7 @@ const jsonInit = (body: unknown): RequestInit => ({
 })
 
 export function postAlert(alertId: string, startedAt: number, captureKind: string): Promise<void> {
-  return sendWithRetry('/api/alerts', jsonInit({ alertId, deviceId: getDeviceId(), startedAt, captureKind }))
+  return sendWithRetry('/api/alerts', jsonInit({ alertId, deviceId: getDeviceId(), startedAt, captureKind, language: getLanguage() }))
 }
 
 /** Positions are not retried: the next one (seconds later) replaces a lost one. */

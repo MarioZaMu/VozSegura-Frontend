@@ -49,6 +49,8 @@ export type CaptureOptions = {
   /** Picks the contacts the backend notifies (see lib/deviceId.ts). */
   deviceId?: string
   startedAt?: number
+  /** Language of the contacts' Telegram messages and AI summary (the owner's UI language). */
+  language?: 'es' | 'en'
 }
 
 export type CaptureListener = (event: CaptureEvent) => void

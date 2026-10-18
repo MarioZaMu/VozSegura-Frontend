@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { config, isBackendConfigured } from '../../lib/config'
+import { getLanguage } from '../../i18n/currentLanguage'
 import { getDeviceId } from '../../lib/deviceId'
 import { isNativeApp } from '../../lib/platform'
 import { getSettings } from '../settings/settingsStore'
@@ -65,7 +66,7 @@ export function activateAlert(): void {
   const listener = delivers && current.kind === 'web' ? withWebDelivery(alertId, startedAt, onEvent) : onEvent
   const backend =
     delivers && current.kind === 'native'
-      ? { apiBaseUrl: config.apiBaseUrl, apiToken: config.alertApiToken, deviceId: getDeviceId() }
+      ? { apiBaseUrl: config.apiBaseUrl, apiToken: config.alertApiToken, deviceId: getDeviceId(), language: getLanguage() }
       : {}
   void current.start({ alertId, startedAt, ...defaultCaptureOptions, ...backend }, listener)
 

@@ -69,6 +69,7 @@ public class AlertCaptureService extends Service {
     static final String EXTRA_API_TOKEN = "apiToken";
     static final String EXTRA_STARTED_AT = "startedAt";
     static final String EXTRA_DEVICE_ID = "deviceId";
+    static final String EXTRA_LANGUAGE = "language";
     /** Longest wait for pending uploads after the recording stopped. */
     private static final long DRAIN_TIMEOUT_MS = 4 * 60_000;
 
@@ -135,7 +136,8 @@ public class AlertCaptureService extends Service {
         uploader = apiBaseUrl == null || apiBaseUrl.isEmpty() || apiToken == null
                 ? null
                 : new AlertUploader(apiBaseUrl, apiToken, alertId, intent.getStringExtra(EXTRA_DEVICE_ID),
-                        intent.getLongExtra(EXTRA_STARTED_AT, System.currentTimeMillis()), (item, ok, index) -> {
+                        intent.getLongExtra(EXTRA_STARTED_AT, System.currentTimeMillis()),
+                        intent.getStringExtra(EXTRA_LANGUAGE), (item, ok, index) -> {
                             if ("stop".equals(item) && ok) putMeta(dir, alertMeta, "stopSent", true);
                             emitDelivery(item, ok, index);
                         });
@@ -188,6 +190,7 @@ public class AlertCaptureService extends Service {
         updateMeta("alertId", alertId);
         updateMeta("startedAt", intent.getLongExtra(EXTRA_STARTED_AT, System.currentTimeMillis()));
         updateMeta("deviceId", intent.getStringExtra(EXTRA_DEVICE_ID));
+        updateMeta("language", intent.getStringExtra(EXTRA_LANGUAGE));
         updateMeta("durations", new JSONObject());
 
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);

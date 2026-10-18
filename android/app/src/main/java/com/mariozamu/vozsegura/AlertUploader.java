@@ -41,6 +41,8 @@ class AlertUploader {
     /** Chooses the contacts the alert goes to; null falls back to the backend default. */
     private final String deviceId;
     private final long startedAt;
+    /** "es" or "en": the language of the Telegram messages and the AI summary; null = Spanish. */
+    private final String language;
     private final Reporter reporter;
     // One queue for the alert, audio and stop (ordered), another one so positions are never
     // stuck behind a slow audio upload.
@@ -48,12 +50,14 @@ class AlertUploader {
     private final ExecutorService locationQueue = Executors.newSingleThreadExecutor();
     private volatile boolean alertSent;
 
-    AlertUploader(String baseUrl, String token, String alertId, String deviceId, long startedAt, Reporter reporter) {
+    AlertUploader(String baseUrl, String token, String alertId, String deviceId, long startedAt, String language,
+                  Reporter reporter) {
         this.baseUrl = baseUrl.replaceAll("/+$", "");
         this.token = token;
         this.alertId = alertId;
         this.deviceId = deviceId;
         this.startedAt = startedAt;
+        this.language = language;
         this.reporter = reporter;
     }
 
@@ -125,6 +129,7 @@ class AlertUploader {
                     .put("startedAt", startedAt)
                     .put("captureKind", "native");
             if (deviceId != null) body.put("deviceId", deviceId);
+            if (language != null) body.put("language", language);
             alertSent = withRetry(() -> postJson("/api/alerts", body));
         } catch (JSONException e) {
             alertSent = false;

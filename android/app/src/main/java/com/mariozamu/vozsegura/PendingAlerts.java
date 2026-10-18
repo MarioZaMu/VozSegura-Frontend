@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Audio that could not be sent during an alert (no signal, phone turned off, app killed) stays
  * in files/alerts/{alertId}/ next to a meta.json that AlertCaptureService keeps up to date:
- * { alertId, startedAt, deviceId?, durations: { "0": ms, ... }, totalChunks, stopReason?, stopSent }.
+ * { alertId, startedAt, deviceId?, language?, durations: { "0": ms, ... }, totalChunks, stopReason?, stopSent }.
  * flush() sends what is left the next time the app opens, then the stop, and deletes it all.
  */
 final class PendingAlerts {
@@ -129,6 +129,7 @@ final class PendingAlerts {
         boolean[] stopSent = {false};
         AlertUploader uploader = new AlertUploader(baseUrl, token, alertId,
                 meta.has("deviceId") ? meta.optString("deviceId") : null, startedAt,
+                meta.has("language") ? meta.optString("language") : null,
                 (item, ok, index) -> {
                     if ("stop".equals(item)) stopSent[0] = ok;
                 });
