@@ -346,6 +346,6 @@ app navigation for real alerts; `/alerta/demo` keeps it for the presentation.
 7. ✅ Settings: contacts by Telegram invite, message, permissions up front, gesture practice, history
 8. ✅ Backend: alert endpoint, storage, AI transcription/summary, Telegram, Vercel deploy
 9. ✅ Contact view: live map, AI summary ("generando resumen…"), audio + transcripts, demo
-10. 🧪 Triple tap to stop, "estoy bien" / false alarm, leftover audio resent on app open (pending phone test)
+10. ✅ Triple tap to stop, "estoy bien" / false alarm, leftover audio resent on app open
 11. Installable PWA + final APK, demo polish, pixel perfect, usability tests (PC + Android)
 
