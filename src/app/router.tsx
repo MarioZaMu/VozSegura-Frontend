@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router'
 import { ContactAlertView } from '../views/contact/ContactAlertView'
+import { DesignSystemView } from '../views/design-system/DesignSystemView'
 import { NotFoundView } from '../views/NotFoundView'
 import { SettingsView } from '../views/settings/SettingsView'
 import { WatchView } from '../views/watch/WatchView'
@@ -13,6 +14,7 @@ export const router = createBrowserRouter([
       { path: routes.watch, element: <WatchView /> },
       { path: routes.settings, element: <SettingsView /> },
       { path: routes.contactAlert, element: <ContactAlertView /> },
+      { path: routes.designSystem, element: <DesignSystemView /> },
       { path: '*', element: <NotFoundView /> },
     ],
   },

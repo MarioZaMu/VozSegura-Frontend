@@ -4,6 +4,7 @@ export const routes = {
   watch: '/',
   settings: '/configuracion',
   contactAlert: '/alerta/:alertId',
+  designSystem: '/sistema-diseno',
 } as const
 
 export const buildContactAlertPath = (alertId: string) => `/alerta/${encodeURIComponent(alertId)}`

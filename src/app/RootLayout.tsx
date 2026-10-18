@@ -5,13 +5,14 @@ const navItems = [
   { to: routes.watch, label: 'Reloj' },
   { to: routes.settings, label: 'Configuración' },
   { to: buildContactAlertPath('demo'), label: 'Contacto' },
+  { to: routes.designSystem, label: 'Diseño' },
 ]
 
 // Temporary navigation between the three views while they are being built.
 export function RootLayout() {
   return (
     <div className="flex h-full flex-col">
-      <nav className="flex justify-center gap-2 p-4" aria-label="Vistas">
+      <nav className="flex flex-wrap justify-center gap-2 p-4" aria-label="Vistas">
         {navItems.map((item) => (
           <NavLink
             key={item.to}
