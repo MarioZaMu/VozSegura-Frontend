@@ -12,7 +12,8 @@ Backend lives in a separate repo: `../VozSegura-backend` (github.com/MarioZaMu/V
 ## Working rules
 
 - **Language:** all code (identifiers, files, comments, commits) in English. Everything
-  the user sees in Spanish. Public URL paths are user-visible, so they are in Spanish.
+  the user sees comes from `src/i18n/` (Spanish and English, phase 12): never hardcode UI
+  text in components. Public URL paths stay in Spanish.
 - Work in phases; explain before, report after (how to test on PC and phone) and wait
   for approval. Each phase ends with `npm run build` + `npm run lint` + `npm test` clean and several
   small commits. Never push unless asked.
@@ -259,12 +260,13 @@ Android side (`android/app/src/main/java/com/mariozamu/vozsegura/`):
 persisted in localStorage (`voz-segura:settings:v1`) through the safe helpers in
 `lib/storage.ts`, and synced across tabs with the `storage` event. Fields:
 `demoMode` (default **on** in the browser, so the classroom demo works out of the box;
-off in the Android app), `watchShape` and `onboarded` (Android app: Settings opens on
-launch until "Ir al reloj" is pressed once).
+off in the Android app), `watchShape`, `onboarded` (Android app: Settings opens on
+launch until "Ir al reloj" is pressed once), `theme` ('dark' default | 'light' | 'system')
+and `language` ('system' default | 'es' | 'en').
 
 ## Settings view (phase 7)
 
-`views/settings/`: one card per section, all in Spanish.
+`views/settings/`: one card per section (texts from `src/i18n/`).
 
 - **ContactsSection** (+ `useContacts`): add a name → `POST /api/contacts` → share
   `t.me/VSegurabot?start=<code>` with `lib/share.ts` (`@capacitor/share` in the app, Web
@@ -343,6 +345,39 @@ app navigation for real alerts; `/alerta/demo` keeps it for the presentation.
 - `docs/pruebas-usabilidad.md`: usability test script (6 tasks, observation table, 1–5
   questions).
 
+## Light theme and languages (phase 12)
+
+- **Theme:** Settings → Apariencia (`AppearanceSection`). `lib/theme.ts` (`startTheme()` in
+  main.tsx) sets `<html data-theme>` from the setting ("system" follows
+  `prefers-color-scheme`) plus the `color-scheme` / `theme-color` metas. The light theme is
+  an unlayered `:root[data-theme='light']` block in index.css that only overrides brand
+  surface, text and status tokens (darker magenta and status colors for 4.5:1 on white).
+  Watch and device tokens never change: the watch is always dark. Text on accent fills
+  uses `text-on-accent` (white in both themes), never `text-text-primary`. The map's dark
+  filter only applies outside the light theme. Leaflet reads its colors once, when the map
+  is created.
+- **i18n:** `src/i18n/es.ts` is the reference dictionary (plain strings, functions for
+  texts with values, arrays for sentences with bold parts); `en.ts` is typed as
+  `Messages = typeof es`, so a missing or extra key fails the build. `language.ts` is pure
+  (resolves "system" from `navigator.language`: English if it starts with "en", else
+  Spanish; `getMessages`, `localeOf`), `currentLanguage.ts` reads the settings store
+  (`getLanguage()` for non-React code, `startLanguage()` keeps `<html lang>`), `useT()` /
+  `useLanguage()` for components. `LanguageProvider` overrides the language for a subtree.
+  Pure helpers take the language as a parameter with 'es' as default (tests stay simple).
+- **Dates and numbers:** `lib/formatDate.ts` caches formatters per language (es-CO /
+  en-US, 24 h in both); the watch date is "sáb 17 oct" / "Sat Oct 17".
+- **The contact view uses the alert's language**, not the viewer's: `GET /api/alert`
+  returns `language` (older alerts → 'es') and `ContactAlertView` wraps the page in
+  `LanguageProvider`. Loading / not-found messages use the viewer's language. The demo
+  alert (texts in `demo` of the dictionaries) follows the UI language.
+- **Each alert carries the owner's language:** `postAlert` (web) and the native start
+  options (`language` → `AlertCaptureService.EXTRA_LANGUAGE` → `AlertUploader`, also kept in
+  meta.json for leftovers) send it, and the backend writes the Telegram messages, the
+  Whisper hint and the AI summary in it. `DemoTelegramPreview` repeats the backend's texts
+  (`telegram` in the dictionaries): keep both in sync.
+- Not translated on purpose: native diagnostics strings from the Java service (only seen in
+  logcat) and the hidden notification channel name.
+
 ## Android app
 
 - appId `com.mariozamu.vozsegura`, name "Voz Segura", `webDir: dist` (`capacitor.config.ts`).
@@ -375,5 +410,5 @@ app navigation for real alerts; `/alerta/demo` keeps it for the presentation.
 9. ✅ Contact view: live map, AI summary ("generando resumen…"), audio + transcripts, demo
 10. ✅ Triple tap to stop, "estoy bien" / false alarm, leftover audio resent on app open
 11. 🧪 Presentation flow (live demo + simulated Telegram), polish, installable/offline PWA, signed release APK, usability test script (pending phone test)
-12. Light theme (watch stays dark) and Spanish / English (UI, Telegram messages and AI summary)
+12. 🧪 Light theme (watch stays dark) and Spanish / English (UI, Telegram messages and AI summary) (pending phone test)
 
