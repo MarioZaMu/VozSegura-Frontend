@@ -33,7 +33,14 @@ npm run preview    # serve dist/ locally
 npm run android:sync     # web build + copy into android/ (run after any web change)
 npm run android:build    # debug APK → android/app/build/outputs/apk/debug/app-debug.apk
 npm run android:install  # adb install -r on the phone connected by USB
+npm run android:release  # signed release APK → release/VozSegura-<versionName>.apk (git-ignored)
 ```
+
+Release signing: `android/app/build.gradle` reads `~/.vozsegura/keystore.properties` (or
+`VOZSEGURA_KEYSTORE_PROPERTIES`), created once with a random password that is never
+printed; the `.jks` lives next to it, outside the repo. Debug and release APKs are signed
+with different keys, so switching on a phone needs an uninstall (loses the deviceId).
+Bump `versionCode`/`versionName` in build.gradle for each shared release.
 
 `scripts/android.mjs` builds with **JDK 21** (`C:\Program Files\Java\jdk-21.0.12`):
 Gradle 8.14 / AGP 8.13 (Capacitor 8) fail on Java 25 ("Unsupported class file major
@@ -319,6 +326,23 @@ app navigation for real alerts; `/alerta/demo` keeps it for the presentation.
 - Known: Whisper hallucinates "Gracias." on silent chunks (phone in a pocket); the summary
   prompt ignores it, the per-chunk transcript still shows it.
 
+## Presentation flow and PWA (phase 11)
+
+- `features/contact/demoTimeline.ts`: `/alerta/demo` follows the current **demo** alert of
+  this tab (start = double tap, stop = triple tap/Detener, resolution from the history
+  entry); without one it plays `scriptedTimeline` (the 100 s "Laura" alert).
+  `demoAlertView(timeline, now)` is pure and tested (`demoAlertView.test.ts`).
+- `views/watch/DemoTelegramPreview.tsx` (PC watch view, demo alerts only): the Telegram
+  chat the contact would get, same texts as the backend, plus "Ver lo que recibe tu
+  contacto". Demo history entries open `/alerta/demo` (their ids are not on the server).
+- PWA: `public/manifest.webmanifest` + hand-written `public/sw.js` (navigations network
+  first with the cached shell offline, `/assets/*` cache first, cross-origin untouched).
+  Registered by `lib/serviceWorker.ts` only in production web, never in the Android app
+  or dev. `vercel.json` serves `sw.js` with `no-cache`. Bump `CACHE` in sw.js to drop old
+  caches. Test it with `npm run build && npm run preview`.
+- `docs/pruebas-usabilidad.md`: usability test script (6 tasks, observation table, 1–5
+  questions).
+
 ## Android app
 
 - appId `com.mariozamu.vozsegura`, name "Voz Segura", `webDir: dist` (`capacitor.config.ts`).
@@ -350,5 +374,6 @@ app navigation for real alerts; `/alerta/demo` keeps it for the presentation.
 8. ✅ Backend: alert endpoint, storage, AI transcription/summary, Telegram, Vercel deploy
 9. ✅ Contact view: live map, AI summary ("generando resumen…"), audio + transcripts, demo
 10. ✅ Triple tap to stop, "estoy bien" / false alarm, leftover audio resent on app open
-11. Installable PWA + final APK, demo polish, pixel perfect, usability tests (PC + Android)
+11. 🧪 Presentation flow (live demo + simulated Telegram), polish, installable/offline PWA, signed release APK, usability test script (pending phone test)
+12. Light theme (watch stays dark) and Spanish / English (UI, Telegram messages and AI summary)
 
