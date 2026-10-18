@@ -66,7 +66,7 @@ export function AlertControlSection() {
           {resolvedText[resolution]}
           {!delivered && ' (Demo: no se envió nada.)'}
         </p>
-        <Link to={buildContactAlertPath(alertId)} className="text-body-sm font-medium text-primary">
+        <Link to={buildContactAlertPath(entry?.kind === 'demo' ? 'demo' : alertId)} className="text-body-sm font-medium text-primary">
           Ver la alerta
         </Link>
       </Card>

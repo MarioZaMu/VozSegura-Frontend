@@ -26,7 +26,7 @@ export function HistorySection() {
             {history.map((entry) => (
               <li key={entry.alertId}>
                 <Link
-                  to={buildContactAlertPath(entry.alertId)}
+                  to={buildContactAlertPath(entry.kind === 'demo' ? 'demo' : entry.alertId)}
                   className="flex min-h-touch items-center justify-between gap-3 rounded-lg bg-surface-raised/50 px-4 py-3 focus-visible:outline-2 focus-visible:outline-primary"
                 >
                   <span>
