@@ -20,7 +20,12 @@ export function Card({ title, icon, raised = false, className, children, ...prop
       {title && (
         <header className="mb-4 flex items-center gap-3">
           {icon && (
-            <span className="grid size-10 place-items-center rounded-full bg-surface-raised text-primary">
+            <span
+              className={cx(
+                'grid size-10 place-items-center rounded-full text-primary',
+                raised ? 'bg-surface' : 'bg-surface-raised',
+              )}
+            >
               {icon}
             </span>
           )}
