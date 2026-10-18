@@ -16,3 +16,16 @@ export function formatWatchDate(date: Date): string {
     parts.find((part) => part.type === type)?.value.replace('.', '') ?? ''
   return `${pick('weekday')} ${pick('day')} ${pick('month')}`
 }
+
+const dateTimeFormat = new Intl.DateTimeFormat(LOCALE, {
+  day: 'numeric',
+  month: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+})
+
+/** "18 oct, 14:05" — for lists such as the alert history. */
+export function formatDateTime(date: Date): string {
+  return dateTimeFormat.format(date)
+}

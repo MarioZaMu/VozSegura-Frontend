@@ -25,6 +25,8 @@
   --color-text-primary: #ffffff;
   --color-text-secondary: #9a93a8;
   --color-danger: #e53935;
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
 
   /* Color: watch face. Neutral on purpose: the idle and active states must look like
      an ordinary watch, so no brand magenta here. */
