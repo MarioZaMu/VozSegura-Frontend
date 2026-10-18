@@ -5,7 +5,7 @@ import { alertSessionReducer, initialAlertSession, MAX_LOCATIONS, type AlertSess
 const fix = (time: number): LocationFix => ({ latitude: 6.2, longitude: -75.5, accuracy: 10, time })
 
 const active = (): AlertSession =>
-  alertSessionReducer(initialAlertSession, { type: 'activate', alertId: 'a1', kind: 'demo', time: 1000 })
+  alertSessionReducer(initialAlertSession, { type: 'activate', alertId: 'a1', kind: 'demo', time: 1000, delivers: false })
 
 describe('alertSessionReducer', () => {
   it('activates a new alert', () => {
@@ -14,7 +14,7 @@ describe('alertSessionReducer', () => {
   })
 
   it('ignores a second activation while an alert is running', () => {
-    const state = alertSessionReducer(active(), { type: 'activate', alertId: 'a2', kind: 'web', time: 2000 })
+    const state = alertSessionReducer(active(), { type: 'activate', alertId: 'a2', kind: 'web', time: 2000, delivers: true })
     expect(state.alertId).toBe('a1')
   })
 
@@ -76,9 +76,19 @@ describe('alertSessionReducer', () => {
     expect(state.chunks).toHaveLength(1)
   })
 
+  it('tracks deliveries, including uploads that finish after stopping', () => {
+    let state = alertSessionReducer(initialAlertSession, { type: 'activate', alertId: 'a3', kind: 'web', time: 0, delivers: true })
+    expect(state.delivery.alert).toBe('sending')
+    state = alertSessionReducer(state, { type: 'capture', event: { type: 'delivery', item: 'alert', ok: true }, time: 1 })
+    state = alertSessionReducer(state, { type: 'capture', event: { type: 'stopped', reason: 'user' }, time: 2 })
+    state = alertSessionReducer(state, { type: 'capture', event: { type: 'delivery', item: 'chunk', ok: true, index: 0 }, time: 3 })
+    state = alertSessionReducer(state, { type: 'capture', event: { type: 'delivery', item: 'stop', ok: true }, time: 4 })
+    expect(state.delivery).toMatchObject({ alert: 'sent', chunksUploaded: 1, stop: 'sent' })
+  })
+
   it('can start a new alert after the previous one stopped', () => {
     const stopped = alertSessionReducer(active(), { type: 'capture', event: { type: 'stopped', reason: 'user' }, time: 2000 })
-    const next = alertSessionReducer(stopped, { type: 'activate', alertId: 'a2', kind: 'native', time: 3000 })
+    const next = alertSessionReducer(stopped, { type: 'activate', alertId: 'a2', kind: 'native', time: 3000, delivers: true })
     expect(next).toMatchObject({ status: 'active', alertId: 'a2', chunks: [], locations: [] })
   })
 })

@@ -18,7 +18,7 @@ export type AudioChunk = {
   mimeType: string
   /** Web/demo only: the recorded audio. Native chunks stay on disk until uploaded. */
   blob?: Blob
-  /** Native app only: file in the app's private storage (uploaded by the service in phase 8). */
+  /** Native app only: file in the app's private storage (deleted once uploaded). */
   path?: string
 }
 
@@ -26,12 +26,16 @@ export type CaptureSource = 'microphone' | 'location'
 
 export type StopReason = 'user' | 'max-duration' | 'error'
 
+/** What was sent to the backend (alert first, then positions, audio and the stop). */
+export type DeliveryItem = 'alert' | 'location' | 'chunk' | 'stop'
+
 export type CaptureEvent =
   | { type: 'started'; source: CaptureSource }
   | { type: 'location'; fix: LocationFix }
   | { type: 'chunk'; chunk: AudioChunk }
   | { type: 'error'; source: CaptureSource; message: string }
   | { type: 'stopped'; reason: StopReason }
+  | { type: 'delivery'; item: DeliveryItem; ok: boolean; index?: number }
 
 export type CaptureOptions = {
   alertId: string
@@ -39,6 +43,10 @@ export type CaptureOptions = {
   chunkSeconds: number
   /** Safety net until the cancel flow exists (phase 10). */
   maxDurationSeconds: number
+  /** Backend to send the alert to (native app only; the web capture is wrapped in JS). */
+  apiBaseUrl?: string
+  apiToken?: string
+  startedAt?: number
 }
 
 export type CaptureListener = (event: CaptureEvent) => void
