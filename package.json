@@ -9,7 +9,10 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "android:sync": "npm run build && cap sync android",
+    "android:build": "node scripts/android.mjs build",
+    "android:install": "node scripts/android.mjs install"
   },
   "dependencies": {
     "@capacitor-community/keep-awake": "^8.0.1",
