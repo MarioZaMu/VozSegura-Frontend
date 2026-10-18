@@ -50,7 +50,10 @@ public class AlertCapturePlugin extends Plugin {
                 .setAction(AlertCaptureService.ACTION_START)
                 .putExtra(AlertCaptureService.EXTRA_ALERT_ID, alertId)
                 .putExtra(AlertCaptureService.EXTRA_CHUNK_SECONDS, call.getInt("chunkSeconds", 20))
-                .putExtra(AlertCaptureService.EXTRA_MAX_DURATION_SECONDS, call.getInt("maxDurationSeconds", 300));
+                .putExtra(AlertCaptureService.EXTRA_MAX_DURATION_SECONDS, call.getInt("maxDurationSeconds", 300))
+                .putExtra(AlertCaptureService.EXTRA_API_BASE_URL, call.getString("apiBaseUrl", ""))
+                .putExtra(AlertCaptureService.EXTRA_API_TOKEN, call.getString("apiToken"))
+                .putExtra(AlertCaptureService.EXTRA_STARTED_AT, call.getData().optLong("startedAt", System.currentTimeMillis()));
         try {
             ContextCompat.startForegroundService(getContext(), intent);
             call.resolve();

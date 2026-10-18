@@ -43,7 +43,10 @@ import java.util.Locale;
  * - Audio: AAC in .m4a chunks (one MediaRecorder per chunk, so each file plays on its own),
  *   stored in files/alerts/{alertId}/. Uploading them is added with the backend (phase 8).
  * - Location: fused provider, high accuracy, every ~10 s.
- * - Microphone and location are independent: one failing never stops the other.
+ * - Delivery: AlertUploader sends the alert, positions and each finished chunk to the backend
+ *   (deleting the file once uploaded) and keeps the service alive until the stop is sent.
+ * - Microphone and location are independent: one failing never stops the other, and the
+ *   alert is sent even without any permission.
  * - The mandatory notification uses a neutral text and the lowest importance. The app does
  *   not ask for the notification permission, so on Android 13+ it is not shown at all.
  */
@@ -58,6 +61,11 @@ public class AlertCaptureService extends Service {
     static final String EXTRA_ALERT_ID = "alertId";
     static final String EXTRA_CHUNK_SECONDS = "chunkSeconds";
     static final String EXTRA_MAX_DURATION_SECONDS = "maxDurationSeconds";
+    static final String EXTRA_API_BASE_URL = "apiBaseUrl";
+    static final String EXTRA_API_TOKEN = "apiToken";
+    static final String EXTRA_STARTED_AT = "startedAt";
+    /** Longest wait for pending uploads after the recording stopped. */
+    private static final long DRAIN_TIMEOUT_MS = 4 * 60_000;
 
     private static final String TAG = "AlertCapture";
     private static final String CHANNEL_ID = "sync";
@@ -82,6 +90,10 @@ public class AlertCaptureService extends Service {
     private File alertDir;
     private long chunkMillis;
     private boolean stopping;
+    /** Recording finished but uploads are still being sent. */
+    private boolean draining;
+    @Nullable
+    private AlertUploader uploader;
 
     @Nullable
     @Override
@@ -95,11 +107,17 @@ public class AlertCaptureService extends Service {
             stopCapture("user");
             return START_NOT_STICKY;
         }
-        if (running) return START_NOT_STICKY; // one alert at a time
+        if (running || draining) return START_NOT_STICKY; // one alert at a time
 
         String alertId = intent.getStringExtra(EXTRA_ALERT_ID);
         chunkMillis = intent.getIntExtra(EXTRA_CHUNK_SECONDS, 20) * 1000L;
         long maxDurationMillis = intent.getIntExtra(EXTRA_MAX_DURATION_SECONDS, 300) * 1000L;
+        String apiBaseUrl = intent.getStringExtra(EXTRA_API_BASE_URL);
+        String apiToken = intent.getStringExtra(EXTRA_API_TOKEN);
+        uploader = apiBaseUrl == null || apiBaseUrl.isEmpty() || apiToken == null
+                ? null
+                : new AlertUploader(apiBaseUrl, apiToken, alertId,
+                        intent.getLongExtra(EXTRA_STARTED_AT, System.currentTimeMillis()), this::emitDelivery);
 
         boolean canRecord = hasPermission(Manifest.permission.RECORD_AUDIO);
         boolean canLocate = hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -109,7 +127,15 @@ public class AlertCaptureService extends Service {
             emitError("microphone", "Permiso de micrófono no concedido");
             emitError("location", "Permiso de ubicación no concedido");
             emitStopped("error");
-            stopSelf();
+            // Nothing to record, but the contacts are still warned (the app is in the
+            // foreground right after the gesture, so a plain service may use the network).
+            if (uploader != null) {
+                draining = true;
+                uploader.sendAlert();
+                uploader.finish("error", 0, () -> handler.post(this::shutdown));
+            } else {
+                stopSelf();
+            }
             return START_NOT_STICKY;
         }
 
@@ -139,7 +165,9 @@ public class AlertCaptureService extends Service {
 
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "VozSegura:capture");
-        wakeLock.acquire(maxDurationMillis + 60_000);
+        wakeLock.acquire(maxDurationMillis + DRAIN_TIMEOUT_MS);
+
+        if (uploader != null) uploader.sendAlert();
 
         if (canLocate) startLocation();
         else emitError("location", "Permiso de ubicación no concedido");
@@ -226,6 +254,7 @@ public class AlertCaptureService extends Service {
         recorder.release();
         recorder = null;
         emitChunk(chunkCount, currentChunkFile, durationMs);
+        if (uploader != null) uploader.sendChunk(chunkCount, currentChunkFile, durationMs);
         chunkCount++;
     }
 
@@ -233,7 +262,7 @@ public class AlertCaptureService extends Service {
 
     private void stopCapture(String reason) {
         if (!running || stopping) {
-            stopSelf();
+            if (!draining) stopSelf();
             return;
         }
         stopping = true;
@@ -242,12 +271,33 @@ public class AlertCaptureService extends Service {
         if (locationClient != null && locationCallback != null) {
             locationClient.removeLocationUpdates(locationCallback);
         }
-        if (wakeLock != null && wakeLock.isHeld()) wakeLock.release();
         running = false;
         emitStopped(reason);
         Log.i(TAG, "Capture stopped (" + reason + ") with " + chunkCount + " chunks");
+        if (uploader == null) {
+            shutdown();
+            return;
+        }
+        // Stay in the foreground (and awake) until the last chunk and the stop are sent.
+        draining = true;
+        uploader.finish(reason, chunkCount, () -> handler.post(this::shutdown));
+        handler.postDelayed(this::shutdown, DRAIN_TIMEOUT_MS);
+    }
+
+    private void shutdown() {
+        if (!draining && running) return;
+        handler.removeCallbacksAndMessages(null);
+        draining = false;
+        uploader = null;
+        if (wakeLock != null && wakeLock.isHeld()) wakeLock.release();
+        if (alertDir != null) {
+            String[] left = alertDir.list();
+            //noinspection ResultOfMethodCallIgnored
+            if (left != null && left.length == 0) alertDir.delete();
+        }
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
         stopSelf();
+        Log.i(TAG, "Service finished");
     }
 
     @Override
@@ -321,6 +371,19 @@ public class AlertCaptureService extends Service {
         JSObject event = new JSObject();
         event.put("type", "location");
         event.put("fix", fix);
+        emit(event);
+        if (uploader != null) {
+            uploader.sendLocation(location.getLatitude(), location.getLongitude(), location.getAccuracy(), location.getTime());
+        }
+    }
+
+    /** Called from the uploader threads. */
+    private void emitDelivery(String item, boolean ok, int index) {
+        JSObject event = new JSObject();
+        event.put("type", "delivery");
+        event.put("item", item);
+        event.put("ok", ok);
+        if (index >= 0) event.put("index", index);
         emit(event);
     }
 
