@@ -1,12 +1,15 @@
 // Builds and installs the Android app without opening Android Studio.
 //   node scripts/android.mjs build    → android/app/build/outputs/apk/debug/app-debug.apk
 //   node scripts/android.mjs install  → installs that APK on the phone connected by USB
+//   node scripts/android.mjs release  → signed release APK, copied to release/VozSegura-<version>.apk
+//                                       (key in ~/.vozsegura/keystore.properties, see build.gradle)
 // Gradle 8.14 (Capacitor 8) needs JDK 17–21. JAVA_HOME on this PC and Android Studio's JBR
 // are Java 25, which fails with "Unsupported class file major version 69", so the global
 // JAVA_HOME is ignored: the first JDK found below is used. Set ANDROID_JAVA_HOME to force
 // another one, and ANDROID_HOME for a non-default SDK.
 import { spawnSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs'
+import { homedir } from 'node:os'
 import { join } from 'node:path'
 
 const isWindows = process.platform === 'win32'
@@ -27,7 +30,7 @@ function run(command, args, options = {}) {
   if (result.status !== 0) process.exit(result.status ?? 1)
 }
 
-function build() {
+function gradle(task) {
   if (!javaHome) {
     console.error('No se encontró un JDK 17–21. Define ANDROID_JAVA_HOME.')
     process.exit(1)
@@ -35,11 +38,31 @@ function build() {
   console.log(`JDK: ${javaHome}`)
   // Absolute path: some shells do not look for executables in the current directory.
   const gradlew = join(androidDir, isWindows ? 'gradlew.bat' : 'gradlew')
-  run(`"${gradlew}"`, ['assembleDebug'], {
+  run(`"${gradlew}"`, [task], {
     cwd: androidDir,
     env: { ...process.env, JAVA_HOME: javaHome, ANDROID_HOME: sdkDir },
   })
+}
+
+function build() {
+  gradle('assembleDebug')
   console.log(`\nAPK listo: ${apkPath}`)
+}
+
+function release() {
+  const keystore = process.env.VOZSEGURA_KEYSTORE_PROPERTIES ?? join(homedir(), '.vozsegura', 'keystore.properties')
+  if (!existsSync(keystore)) {
+    console.error(`Falta la clave de firma (${keystore}). Sin ella la APK release no se puede instalar.`)
+    process.exit(1)
+  }
+  gradle('assembleRelease')
+  const gradleFile = readFileSync(join(androidDir, 'app', 'build.gradle'), 'utf8')
+  const version = gradleFile.match(/versionName "([^"]+)"/)?.[1] ?? 'dev'
+  const outDir = join(import.meta.dirname, '..', 'release')
+  mkdirSync(outDir, { recursive: true })
+  const target = join(outDir, `VozSegura-${version}.apk`)
+  copyFileSync(join(androidDir, 'app', 'build', 'outputs', 'apk', 'release', 'app-release.apk'), target)
+  console.log(`\nAPK firmada: ${target}`)
 }
 
 function install() {
@@ -51,10 +74,10 @@ function install() {
   run(`"${adb}"`, ['install', '-r', `"${apkPath}"`])
 }
 
-const commands = { build, install }
+const commands = { build, install, release }
 const command = commands[process.argv[2]]
 if (!command) {
-  console.error('Uso: node scripts/android.mjs <build|install>')
+  console.error('Uso: node scripts/android.mjs <build|install|release>')
   process.exit(1)
 }
 command()

@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "android:sync": "npm run build && cap sync android",
     "android:build": "node scripts/android.mjs build",
-    "android:install": "node scripts/android.mjs install"
+    "android:install": "node scripts/android.mjs install",
+    "android:release": "npm run android:sync && node scripts/android.mjs release"
   },
   "dependencies": {
     "@capacitor-community/keep-awake": "^8.0.1",
