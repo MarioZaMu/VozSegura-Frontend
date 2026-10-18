@@ -6,6 +6,43 @@ nada visible en pantalla y sin sonido.
 
 Caso de estudio para la materia **Diseño de Interfaces de Software**.
 
+## Caso de estudio
+
+📄 **[Documento completo (PDF)](docs/Voz-Segura-Caso-de-estudio.pdf)**: problema, usuarios,
+arquitectura, estados, diseño de interfaz, uso de IA, privacidad, accesibilidad, pruebas,
+limitaciones y guion de la demo.
+
+**Problema.** En una situación de riesgo, sacar el celular o usar un botón de pánico visible puede
+delatar a quien pide ayuda. El reloj está siempre en la muñeca y se toca sin mirar.
+
+**Cómo funciona**
+
+1. Doble toque en la pantalla del reloj. La carátula no cambia: nadie se da cuenta.
+2. Una vibración confirma. Hay 4 s para cancelar en silencio manteniendo presionado 2 s.
+3. Los contactos reciben por Telegram la ubicación (en unos 5 s) y luego un audio de 30 s.
+4. La IA solo transcribe y resume el audio después; nunca decide si se envía una alerta.
+
+**Principios de diseño**
+
+- **Sigilo total:** la carátula se ve igual en todos los estados; el único aviso es háptico.
+- **Fácil a propósito, difícil por accidente:** reglas físicas para el gesto (≤ 250 ms por toque,
+  60–400 ms entre toques, ≤ 10 mm de distancia, rechazo de palma) en lugar de un botón.
+- **Reversible:** gracia de 4 s sin avisar a nadie; después, la cancelación avisa «estoy bien».
+- **La alerta sale aunque todo lo demás falle:** ni el GPS, ni el audio, ni la IA la bloquean; si
+  falla la red, el reloj reintenta en silencio cada 5 s.
+
+| Estado | Vibración | Qué pasa |
+|---|---|---|
+| Reposo | — | Carátula normal |
+| Gracia (4 s) | 1 tic | Nada sale del reloj; se puede cancelar en silencio |
+| Enviando / Enviada | 2 tics al llegar | Ubicación a los contactos, luego audio y resumen |
+| Error | 1 vibración larga | Reintenta cada 5 s sin volver a vibrar |
+| Cancelada | 3 tics | Si ya se había enviado, los contactos reciben «estoy bien» |
+
+**Limitaciones principales:** la sincronización celular ↔ reloj no se pudo probar en emuladores;
+el gesto oculto no funciona con TalkBack activo; las personas no se validaron con usuarias reales.
+Detalle y trabajo futuro en el PDF.
+
 ## Módulos
 
 | Módulo   | Descripción                                                                 |
