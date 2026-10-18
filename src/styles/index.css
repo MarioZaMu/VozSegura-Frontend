@@ -72,7 +72,8 @@
   --spacing-touch: 3rem;
   --spacing-gutter: 1rem;
   --spacing-section: 2rem;
-  --spacing-watch-screen: 20rem;
+  /* 20rem on PC, shrinks on narrow screens so the mockup (case + crown) never overflows */
+  --spacing-watch-screen: min(20rem, calc(100vw - 5rem));
   --spacing-content: 30rem;
 
   /* Radius */
