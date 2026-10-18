@@ -45,7 +45,7 @@ holds `sdk.dir`.
 ## Stack
 
 React 19 + Vite 8 + TypeScript 6 + Tailwind CSS v4 + React Router 8. Lint with oxlint,
-tests with Vitest. Android app with Capacitor 8 (`@capacitor-community/keep-awake`,
+tests with Vitest. Maps with Leaflet + OpenStreetMap. Android app with Capacitor 8 (`@capacitor-community/keep-awake`,
 `@capacitor/share` + local `DiscreetHaptics` and `AlertCapture` plugins).
 Deployed on Vercel (git integration; every push to `main` deploys). `vercel.json`
 rewrites every path to `index.html` so client routes survive a reload.
@@ -71,7 +71,7 @@ scripts/      android.mjs (build/install the APK)
 | ------------------ | ---------------- | ---------------------------------- |
 | `/`                | WatchView        | The person at risk (watch)         |
 | `/configuracion`   | SettingsView     | Companion app: contacts, history…  |
-| `/alerta/:alertId` | ContactAlertView | The trusted contact who got a link |
+| `/alerta/:alertId` | ContactAlertView | The trusted contact who got a link (`demo` = simulated) |
 | `/sistema-diseno`  | DesignSystemView | Style guide (dev + case study)     |
 
 ## Design system
@@ -268,6 +268,34 @@ launch until "Ir al reloj" is pressed once).
   git-ignored `.env.localapi.local` (`VITE_API_BASE_URL=http://localhost:3100`); the
   backend's `ALLOWED_ORIGIN` must match the Vite port.
 
+## Contact view (phase 9)
+
+`/alerta/:alertId` — the page the trusted contact opens from the Telegram link (also from
+the owner's alert history). Loaded lazily by the router (it carries Leaflet). Without the
+app navigation for real alerts; `/alerta/demo` keeps it for the presentation.
+
+- `features/contact/alertView.ts` (+ tests): `fetchAlertView` (`GET /api/alert?id`, public),
+  types, and pure helpers: `isFinal` (stopped + summary ready/error + no pending
+  transcripts, or stopped with no audio for 2 min), `formatAgo`, `chunkRange`,
+  `directionsUrl`, `ownerLabel` ("Tu contacto" when no name).
+- `useAlertView`: polls every 5 s until `isFinal`; pauses while the tab is hidden; on a
+  failed refresh keeps the last data and shows "Sin conexión". `demo` → `demoAlertView`.
+- `demoAlertView.ts`: deterministic simulated alert ("Laura", El Poblado) that starts 40 s
+  before the page opened: positions every 5 s, 20 s chunks transcribed 6 s later, a
+  summary that goes "Generando…" → partial → final, stop at second 100.
+- `views/contact/`: `ContactAlertView` (header with live/finished badge, owner message,
+  location card with "Cómo llegar" (Google Maps directions) and "Llamar al 123", summary
+  card with "Generando resumen…" / partial / final + AI disclaimer, audio card with one
+  `<audio preload="none">` and transcript per chunk) and `AlertMap` (Leaflet: trail,
+  accuracy circle, pulsing marker while active; follows the latest fix until the contact
+  drags the map; no wheel zoom so the page scrolls).
+- Map tiles: standard OpenStreetMap darkened with a CSS filter (`.map-dark` in index.css,
+  unlayered because Leaflet's CSS is unlayered). CARTO's dark tiles now require an API key.
+- Audio cannot be tested locally (dev backend cannot read Blob, see backend CLAUDE.md);
+  against production the `<audio>` loads (checked: 19.9 s chunk).
+- Known: Whisper hallucinates "Gracias." on silent chunks (phone in a pocket); the summary
+  prompt ignores it, the per-chunk transcript still shows it.
+
 ## Android app
 
 - appId `com.mariozamu.vozsegura`, name "Voz Segura" (a discreet name/icon is a phase 11
@@ -294,7 +322,7 @@ launch until "Ir al reloj" is pressed once).
 6. ✅ Active state: real audio + location (web + native foreground service), without revealing anything
 7. ✅ Settings: contacts by Telegram invite, message, permissions up front, gesture practice, history
 8. ✅ Backend: alert endpoint, storage, AI transcription/summary, Telegram, Vercel deploy
-9. Contact view + link delivery; "generando resumen…" state
+9. 🧪 Contact view: live map, AI summary ("generando resumen…"), audio + transcripts, demo (pending phone test)
 10. Silent confirmation and cancel / false alarm
 11. Installable PWA + final APK, demo polish, pixel perfect, usability tests (PC + Android)
 
