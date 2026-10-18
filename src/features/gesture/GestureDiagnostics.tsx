@@ -4,7 +4,12 @@ import { cx } from '../../lib/cx'
 import type { GestureEvent } from './doubleTapDetector'
 import { describeGestureEvent } from './gestureLabels'
 
-export type LoggedGestureEvent = GestureEvent & { id: number; at: Date }
+export type LoggedGestureEvent = GestureEvent & {
+  id: number
+  at: Date
+  /** Result of navigator.vibrate for double taps (false = the browser refused). */
+  vibrated?: boolean
+}
 
 type GestureDiagnosticsProps = {
   events: LoggedGestureEvent[]
@@ -45,7 +50,12 @@ export function GestureDiagnostics({ events, hapticsAvailable }: GestureDiagnost
               >
                 {event.type === 'rejected' ? <X size={14} /> : <Check size={14} />}
               </span>
-              <span className="flex-1">{describeGestureEvent(event)}</span>
+              <span className="flex-1">
+                {describeGestureEvent(event)}
+                {event.vibrated !== undefined && (
+                  <span className="text-text-secondary"> · {event.vibrated ? 'vibró' : 'sin vibración'}</span>
+                )}
+              </span>
               <time className="text-caption text-text-secondary tabular-nums">{clockFormat.format(event.at)}</time>
             </li>
           ))}

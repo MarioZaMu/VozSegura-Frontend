@@ -23,11 +23,13 @@ export function usePanicGesture({ onActivate, alwaysBlink = false }: PanicGestur
 
   const handleEvent = useCallback(
     (event: GestureEvent) => {
-      const logged = { ...event, id: nextId.current++, at: new Date() }
+      // Vibrate first, synchronously inside the touch handler: browsers only allow it
+      // while the user's tap is still the active input.
+      const vibrated = event.type === 'double-tap' ? vibrate(hapticPatterns.confirm) : undefined
+      const logged: LoggedGestureEvent = { ...event, id: nextId.current++, at: new Date(), vibrated }
       setEvents((previous) => [logged, ...previous].slice(0, MAX_LOGGED_EVENTS))
 
       if (event.type !== 'double-tap') return
-      const vibrated = vibrate(hapticPatterns.confirm)
       if (!vibrated || alwaysBlink) setBlinkKey((key) => key + 1)
       onActivate()
     },
