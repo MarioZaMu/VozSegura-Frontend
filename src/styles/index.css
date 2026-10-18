@@ -76,6 +76,14 @@
   --spacing-watch-screen: min(20rem, calc(100vw - 5rem));
   --spacing-content: 30rem;
 
+  /* Watch face spacing, in container units like the watch text */
+  --spacing-watch-gap: 2.5cqi;
+  --spacing-watch-icon: 5.5cqi;
+  --spacing-watch-ring: 17cqi;
+  --spacing-watch-inset: 14cqi;
+  /* Full-screen watch on the phone: the largest circle that fits the viewport */
+  --spacing-watch-fullscreen: min(100vw, 100dvh);
+
   /* Radius */
   --radius-*: initial;
   --radius-sm: 0.75rem;
