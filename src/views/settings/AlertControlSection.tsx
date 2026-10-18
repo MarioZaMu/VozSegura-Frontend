@@ -4,7 +4,7 @@ import { Link } from 'react-router'
 import { buildContactAlertPath } from '../../app/routes'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
-import { postResolve } from '../../features/alert/alertApi'
+import { PermanentError, postResolve } from '../../features/alert/alertApi'
 import { setAlertResolution, useAlertHistory, type Resolution } from '../../features/alert/alertHistory'
 import { stopAnyAlert, useAlertSession, useOrphanNativeAlertId } from '../../features/alert/alertSessionStore'
 import { formatAgo } from '../../features/contact/alertView'
@@ -50,8 +50,10 @@ export function AlertControlSection() {
       if (activeId) await stopAnyAlert()
       if (delivered) await postResolve(alertId, next)
       setAlertResolution(alertId, next)
-    } catch {
-      setFailed(true)
+    } catch (error) {
+      // 404: the alert never reached the server (no signal), so nobody needs to be told.
+      if (error instanceof PermanentError && error.status === 404) setAlertResolution(alertId, next)
+      else setFailed(true)
     } finally {
       setBusy(null)
     }

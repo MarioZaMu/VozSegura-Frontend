@@ -18,12 +18,20 @@ async function send(path: string, init: RequestInit): Promise<void> {
   })
   // 4xx (except 408/429) will not succeed on a retry.
   if (response.status >= 400 && response.status < 500 && response.status !== 408 && response.status !== 429) {
-    throw new PermanentError(`HTTP ${response.status}`)
+    throw new PermanentError(response.status)
   }
   if (!response.ok) throw new Error(`HTTP ${response.status}`)
 }
 
-class PermanentError extends Error {}
+/** A 4xx answer: retrying will not help. */
+export class PermanentError extends Error {
+  readonly status: number
+
+  constructor(status: number) {
+    super(`HTTP ${status}`)
+    this.status = status
+  }
+}
 
 /** Retries network errors and 5xx with backoff (~1 min in total). */
 async function sendWithRetry(path: string, init: RequestInit): Promise<void> {

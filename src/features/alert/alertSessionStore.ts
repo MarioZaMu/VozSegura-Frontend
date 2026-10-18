@@ -43,6 +43,8 @@ export function getAlertSession(): AlertSession {
 /** Starts an alert. Ignored while another one is running (the reducer guards it too). */
 export function activateAlert(): void {
   if (session.status === 'active') return
+  // The Android service is already recording an alert from before the app was reopened.
+  if (orphanNativeAlertId) return
   const alertId = crypto.randomUUID()
   const startedAt = Date.now()
   const current = createCapture()
@@ -77,9 +79,13 @@ export async function stopAlert(reason: StopReason = 'user'): Promise<void> {
   if (session.status !== 'active' || !capture) return
   window.clearTimeout(maxDurationTimer)
   const current = capture
+  const alertId = session.alertId
   await current.stop()
-  // The native service reports 'stopped' itself; demo and web stop synchronously.
-  if (current.kind !== 'native') dispatch({ type: 'capture', event: { type: 'stopped', reason }, time: Date.now() })
+  // The native service reports 'stopped' itself; demo and web stop synchronously. If the
+  // service is not recording this alert (it never started, or died), nothing would ever
+  // report it, so it is closed here instead of leaving the alert "active" forever.
+  const nativeOwnsIt = current.kind === 'native' && (await runningNativeAlertId().catch(() => null)) === alertId
+  if (!nativeOwnsIt) dispatch({ type: 'capture', event: { type: 'stopped', reason }, time: Date.now() })
 }
 
 /** The triple tap that stops an alert only counts once the alert is this old, so an
