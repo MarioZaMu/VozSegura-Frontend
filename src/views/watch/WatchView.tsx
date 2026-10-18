@@ -21,6 +21,7 @@ import { canVibrate } from '../../lib/haptics'
 import { isNativeApp } from '../../lib/platform'
 import { useKeepAwake } from '../../lib/useKeepAwake'
 import { useNow } from '../../lib/useNow'
+import { DemoTelegramPreview } from './DemoTelegramPreview'
 
 const shapeOptions = (Object.keys(watchShapeLabels) as WatchShape[]).map((value) => ({
   value,
@@ -146,6 +147,7 @@ export function WatchView() {
 
       <GestureDiagnostics events={events} hapticsAvailable={canVibrate()} />
       <AlertDiagnostics session={alertSession} now={now} />
+      <DemoTelegramPreview session={alertSession} now={now.getTime()} />
     </main>
   )
 }
