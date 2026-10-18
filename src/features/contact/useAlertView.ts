@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { Language } from '../../i18n/language'
 import { AlertNotFoundError, fetchAlertView, isFinal, type AlertView } from './alertView'
 import { demoAlertView } from './demoAlertView'
 import { currentDemoTimeline } from './demoTimeline'
@@ -16,16 +17,16 @@ export type AlertViewState = {
 /**
  * Live data of an alert for the contact view: polls every 5 s while something can still
  * change (paused while the tab is hidden) and stops once the alert is final.
- * "demo" returns the simulated alert instead.
+ * "demo" returns the simulated alert instead, in `demoLanguage`.
  */
-export function useAlertView(alertId: string): AlertViewState {
+export function useAlertView(alertId: string, demoLanguage: Language): AlertViewState {
   const [state, setState] = useState<AlertViewState>({ view: null, notFound: false, offline: false })
 
   useEffect(() => {
     if (alertId === 'demo') {
       const openedAt = Date.now()
       const tick = () =>
-        setState({ view: demoAlertView(currentDemoTimeline(openedAt), Date.now()), notFound: false, offline: false })
+        setState({ view: demoAlertView(currentDemoTimeline(openedAt), Date.now(), demoLanguage), notFound: false, offline: false })
       const first = window.setTimeout(tick, 0)
       const id = window.setInterval(tick, DEMO_TICK_MS)
       return () => {
@@ -64,7 +65,7 @@ export function useAlertView(alertId: string): AlertViewState {
       window.clearTimeout(timer)
       document.removeEventListener('visibilitychange', onVisible)
     }
-  }, [alertId])
+  }, [alertId, demoLanguage])
 
   return state
 }

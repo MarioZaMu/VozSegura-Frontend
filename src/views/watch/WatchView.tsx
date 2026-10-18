@@ -6,7 +6,7 @@ import { SegmentedControl } from '../../components/ui/SegmentedControl'
 import { Switch } from '../../components/ui/Switch'
 import { WatchDevice } from '../../components/watch/WatchDevice'
 import { WatchScreen } from '../../components/watch/WatchScreen'
-import { watchShapeLabels, type WatchShape } from '../../components/watch/watchShape'
+import { watchShapes } from '../../components/watch/watchShape'
 import { AlertDiagnostics } from '../../features/alert/AlertDiagnostics'
 import { activateAlert, stopAlertFromGesture, useAlertSession } from '../../features/alert/alertSessionStore'
 import { GestureDiagnostics } from '../../features/gesture/GestureDiagnostics'
@@ -16,17 +16,13 @@ import { usePanicGesture } from '../../features/gesture/usePanicGesture'
 import { updateSettings, useSettings } from '../../features/settings/settingsStore'
 import { useWatchDisplayMode } from '../../features/watch/useWatchDisplayMode'
 import { WatchFace } from '../../features/watch-face/WatchFace'
+import { useT } from '../../i18n/useT'
 import { isDebugEnabled } from '../../lib/debug'
 import { canVibrate } from '../../lib/haptics'
 import { isNativeApp } from '../../lib/platform'
 import { useKeepAwake } from '../../lib/useKeepAwake'
 import { useNow } from '../../lib/useNow'
 import { DemoTelegramPreview } from './DemoTelegramPreview'
-
-const shapeOptions = (Object.keys(watchShapeLabels) as WatchShape[]).map((value) => ({
-  value,
-  label: watchShapeLabels[value],
-}))
 
 const WATCH_THEME_COLOR = '#000000'
 
@@ -80,6 +76,7 @@ function TouchSurface({ handlers, blinkKey, children }: TouchSurfaceProps) {
 
 export function WatchView() {
   const { watchShape, demoMode, onboarded } = useSettings()
+  const t = useT()
   const navigate = useNavigate()
   const displayMode = useWatchDisplayMode()
   const now = useNow()
@@ -125,21 +122,17 @@ export function WatchView() {
 
       <Card className="flex w-full flex-col gap-4">
         <div className="flex items-center justify-between gap-4">
-          <span className="text-body-sm font-medium">Forma</span>
+          <span className="text-body-sm font-medium">{t.watch.shape}</span>
           <SegmentedControl
-            label="Forma del reloj"
-            options={shapeOptions}
+            label={t.watch.shapeLabel}
+            options={watchShapes.map((value) => ({ value, label: t.watch.shapes[value] }))}
             value={watchShape}
             onChange={(shape) => updateSettings({ watchShape: shape })}
           />
         </div>
         <Switch
-          label="Modo demo"
-          description={
-            demoMode
-              ? 'Micrófono, ubicación, IA y envío simulados.'
-              : 'Usa micrófono, ubicación y envío reales.'
-          }
+          label={t.watch.demoMode}
+          description={demoMode ? t.watch.demoOn : t.watch.demoOff}
           checked={demoMode}
           onChange={(checked) => updateSettings({ demoMode: checked })}
         />

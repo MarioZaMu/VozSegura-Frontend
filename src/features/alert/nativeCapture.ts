@@ -1,3 +1,5 @@
+import { getLanguage } from '../../i18n/currentLanguage'
+import { getMessages } from '../../i18n/language'
 import { registerPlugin, type PluginListenerHandle } from '@capacitor/core'
 import type { AlertCapture, CaptureEvent, CaptureListener, CaptureOptions } from './alertCapture'
 
@@ -64,8 +66,9 @@ export function createNativeCapture(): AlertCapture {
       try {
         await NativeAlertCapture.start(options)
       } catch {
-        listener({ type: 'error', source: 'microphone', message: 'Android no permitió iniciar la captura' })
-        listener({ type: 'error', source: 'location', message: 'Android no permitió iniciar la captura' })
+        const message = getMessages(getLanguage()).capture.nativeRefused
+        listener({ type: 'error', source: 'microphone', message })
+        listener({ type: 'error', source: 'location', message })
         listener({ type: 'stopped', reason: 'error' })
       }
     },

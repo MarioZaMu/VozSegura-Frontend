@@ -1,9 +1,6 @@
 export type WatchShape = 'round' | 'square'
 
-export const watchShapeLabels: Record<WatchShape, string> = {
-  round: 'Redondo',
-  square: 'Cuadrado',
-}
+export const watchShapes: WatchShape[] = ['round', 'square']
 
 /** Corner radius class for any layer of the watch (case, bezel, screen). */
 export const watchShapeRadius: Record<WatchShape, string> = {

@@ -8,19 +8,17 @@ import { PermanentError, postResolve } from '../../features/alert/alertApi'
 import { setAlertResolution, useAlertHistory, type Resolution } from '../../features/alert/alertHistory'
 import { stopAnyAlert, useAlertSession, useOrphanNativeAlertId } from '../../features/alert/alertSessionStore'
 import { formatAgo } from '../../features/contact/alertView'
+import { useLanguage, useT } from '../../i18n/useT'
 import { useNow } from '../../lib/useNow'
 
 /** After a day the last alert is history, not something to answer. */
 const RECENT_MS = 24 * 60 * 60 * 1000
 
-const resolvedText: Record<Resolution, string> = {
-  safe: 'Avisaste a tus contactos que estás bien.',
-  'false-alarm': 'Avisaste a tus contactos que fue una falsa alarma.',
-}
-
 // Top of Settings while an alert is recording or just ended: stop it without the triple tap,
 // and tell the contacts how it ended ("estoy bien" / false alarm). Hidden otherwise.
 export function AlertControlSection() {
+  const t = useT().alertControl
+  const language = useLanguage()
   const session = useAlertSession()
   const orphanAlertId = useOrphanNativeAlertId()
   const history = useAlertHistory()
@@ -61,13 +59,13 @@ export function AlertControlSection() {
 
   if (resolution && !activeId) {
     return (
-      <Card title="Tu última alerta" icon={<ShieldCheck size={20} />} className="flex flex-col gap-3">
+      <Card title={t.lastAlert} icon={<ShieldCheck size={20} />} className="flex flex-col gap-3">
         <p className="text-body-sm text-text-secondary">
-          {resolvedText[resolution]}
-          {!delivered && ' (Demo: no se envió nada.)'}
+          {t.resolved[resolution]}
+          {!delivered && t.demoNotSent}
         </p>
         <Link to={buildContactAlertPath(entry?.kind === 'demo' ? 'demo' : alertId)} className="text-body-sm font-medium text-primary">
-          Ver la alerta
+          {t.seeAlert}
         </Link>
       </Card>
     )
@@ -75,32 +73,32 @@ export function AlertControlSection() {
 
   return (
     <Card
-      title={activeId ? 'Alerta en curso' : 'Tu última alerta'}
+      title={activeId ? t.activeAlert : t.lastAlert}
       icon={activeId ? <ShieldAlert size={20} className="text-danger" /> : <Info size={20} />}
       className="flex flex-col gap-4"
       aria-live="polite"
     >
       <p className="text-body-sm text-text-secondary">
         {activeId
-          ? 'Se está grabando y enviando a tus contactos. Puedes detenerla aquí o con un triple toque en el reloj. Si avisas que estás bien, también se detiene.'
-          : `Empezó ${entry ? formatAgo(entry.startedAt, now) : ''}. Cuéntales a tus contactos cómo terminó:`}
+          ? t.activeIntro
+          : t.recentIntro(entry ? formatAgo(entry.startedAt, now, language) : '')}
       </p>
       <div className="flex flex-col gap-3">
         {activeId && (
           <Button variant="danger" icon={<Square size={18} />} onClick={stop} disabled={busy !== null} fullWidth>
-            {busy === 'stop' ? 'Deteniendo…' : 'Detener alerta'}
+            {busy === 'stop' ? t.stopping : t.stop}
           </Button>
         )}
         <Button icon={<Heart size={18} />} onClick={() => resolve('safe')} disabled={busy !== null} fullWidth>
-          {busy === 'safe' ? 'Avisando…' : 'Avisar que estoy bien'}
+          {busy === 'safe' ? t.notifying : t.safe}
         </Button>
         <Button variant="secondary" onClick={() => resolve('false-alarm')} disabled={busy !== null} fullWidth>
-          {busy === 'false-alarm' ? 'Avisando…' : 'Fue una falsa alarma'}
+          {busy === 'false-alarm' ? t.notifying : t.falseAlarm}
         </Button>
       </div>
       {failed && (
         <p className="text-body-sm text-warning" role="alert">
-          No se pudo avisar. Revisa la conexión e inténtalo de nuevo.
+          {t.failed}
         </p>
       )}
     </Card>

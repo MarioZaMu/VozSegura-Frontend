@@ -2,6 +2,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useEffect, useRef } from 'react'
 import type { LocationFix } from '../../features/alert/alertCapture'
+import { useT } from '../../i18n/useT'
 
 type AlertMapProps = {
   /** Oldest first; the last one is the current position. */
@@ -23,6 +24,7 @@ function token(name: string): string {
 
 // Last position, its accuracy circle and the path walked so far.
 export function AlertMap({ locations, live }: AlertMapProps) {
+  const t = useT()
   const container = useRef<HTMLDivElement>(null)
   const layers = useRef<{ map: L.Map; trail: L.Polyline; accuracy: L.Circle; marker: L.CircleMarker } | null>(null)
   const followed = useRef(true)
@@ -63,10 +65,10 @@ export function AlertMap({ locations, live }: AlertMapProps) {
 
   return (
     <div className="relative">
-      <div ref={container} className="map-dark isolate h-72 w-full overflow-hidden rounded-lg bg-surface-raised" aria-label="Mapa con la ubicación" role="img" />
+      <div ref={container} className="map-dark isolate h-72 w-full overflow-hidden rounded-lg bg-surface-raised" aria-label={t.contact.mapLabel} role="img" />
       {!last && (
         <p className="absolute inset-0 z-10 grid place-items-center rounded-lg bg-surface-raised text-body-sm text-text-secondary">
-          Esperando la primera ubicación…
+          {t.contact.mapWaiting}
         </p>
       )}
     </div>

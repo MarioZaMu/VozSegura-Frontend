@@ -8,15 +8,9 @@ import {
   type CapturePermissionStatus,
   type PermissionStatus,
 } from '../../features/settings/capturePermissions'
+import { useT } from '../../i18n/useT'
 import { cx } from '../../lib/cx'
 import { isNativeApp } from '../../lib/platform'
-
-const statusLabels: Record<PermissionStatus, string> = {
-  granted: 'Concedido',
-  denied: 'Bloqueado',
-  prompt: 'Sin conceder',
-  unknown: 'Desconocido',
-}
 
 const statusClasses: Record<PermissionStatus, string> = {
   granted: 'text-success',
@@ -26,6 +20,7 @@ const statusClasses: Record<PermissionStatus, string> = {
 }
 
 function PermissionRow({ icon, label, status }: { icon: ReactNode; label: string; status: PermissionStatus | undefined }) {
+  const t = useT().permissions
   return (
     <li className="flex min-h-touch items-center justify-between gap-4">
       <span className="flex items-center gap-3 text-body-sm font-medium">
@@ -33,7 +28,7 @@ function PermissionRow({ icon, label, status }: { icon: ReactNode; label: string
         {label}
       </span>
       <span className={cx('text-body-sm', status ? statusClasses[status] : 'text-text-secondary')}>
-        {status ? statusLabels[status] : '…'}
+        {status ? t.status[status] : '…'}
       </span>
     </li>
   )
@@ -42,6 +37,7 @@ function PermissionRow({ icon, label, status }: { icon: ReactNode; label: string
 // Microphone and location are asked here, ahead of time: a permission dialog at the moment
 // of the alert would give the gesture away. Without them the alert is still sent.
 export function PermissionsSection() {
+  const t = useT().permissions
   const [status, setStatus] = useState<CapturePermissionStatus | null>(null)
   const [asking, setAsking] = useState(false)
 
@@ -67,25 +63,20 @@ export function PermissionsSection() {
   const anyDenied = status?.microphone === 'denied' || status?.location === 'denied'
 
   return (
-    <Card title="Permisos" icon={<ShieldCheck size={20} />} className="flex flex-col gap-3">
-      <p className="text-body-sm text-text-secondary">
-        Concédelos ahora: durante una alerta no aparecerá ningún aviso. Si faltan, la alerta se envía igual, sin audio o sin
-        ubicación.
-      </p>
+    <Card title={t.title} icon={<ShieldCheck size={20} />} className="flex flex-col gap-3">
+      <p className="text-body-sm text-text-secondary">{t.intro}</p>
       <ul className="flex flex-col">
-        <PermissionRow icon={<Mic size={18} />} label="Micrófono" status={status?.microphone} />
-        <PermissionRow icon={<MapPin size={18} />} label="Ubicación" status={status?.location} />
+        <PermissionRow icon={<Mic size={18} />} label={t.microphone} status={status?.microphone} />
+        <PermissionRow icon={<MapPin size={18} />} label={t.location} status={status?.location} />
       </ul>
       {!allGranted && (
         <Button onClick={request} disabled={asking || status === null} fullWidth>
-          {asking ? 'Esperando respuesta…' : 'Conceder permisos'}
+          {asking ? t.asking : t.grant}
         </Button>
       )}
       {anyDenied && (
         <p className="text-caption text-text-secondary">
-          {isNativeApp()
-            ? 'Si un permiso está bloqueado, actívalo en Ajustes del teléfono → Apps → Voz Segura → Permisos.'
-            : 'Si un permiso está bloqueado, actívalo desde el candado junto a la dirección del sitio.'}
+          {isNativeApp() ? t.blockedApp : t.blockedWeb}
         </p>
       )}
     </Card>

@@ -6,6 +6,7 @@ import { Card } from '../../components/ui/Card'
 import { Logo } from '../../components/ui/Logo'
 import { Switch } from '../../components/ui/Switch'
 import { updateSettings, useSettings } from '../../features/settings/settingsStore'
+import { useT } from '../../i18n/useT'
 import { isBackendConfigured } from '../../lib/config'
 import { isNativeApp } from '../../lib/platform'
 import { AlertControlSection } from './AlertControlSection'
@@ -20,6 +21,7 @@ import { ProfileSection } from './ProfileSection'
 // it is reached only with a 2-second press on the watch, so nothing on the watch hints at it.
 export function SettingsView() {
   const { demoMode, onboarded } = useSettings()
+  const t = useT().settings
   const navigate = useNavigate()
   const firstRun = isNativeApp() && !onboarded
   const backend = isBackendConfigured()
@@ -33,11 +35,9 @@ export function SettingsView() {
     <main className="mx-auto flex max-w-content flex-col gap-4 px-gutter pb-section animate-screen-in">
       <header className="flex flex-col gap-2 pt-2">
         <Logo className="mb-2" />
-        <h1 className="text-headline font-semibold">{firstRun ? 'Te damos la bienvenida' : 'Configuración'}</h1>
+        <h1 className="text-headline font-semibold">{firstRun ? t.welcomeTitle : t.title}</h1>
         <p className="text-body-sm text-text-secondary">
-          {firstRun
-            ? 'Antes de empezar, agrega a tus contactos de confianza y concede los permisos. Luego el teléfono se verá como un reloj normal.'
-            : 'Contactos, mensaje y permisos de tu alerta silenciosa.'}
+          {firstRun ? t.welcomeIntro : t.intro}
         </p>
       </header>
 
@@ -50,22 +50,17 @@ export function SettingsView() {
         </>
       ) : (
         <Card>
-          <p className="text-body-sm text-text-secondary">
-            Falta configurar el backend (VITE_API_BASE_URL y VITE_ALERT_API_TOKEN): los contactos no están disponibles y solo
-            funciona el modo demo.
-          </p>
+          <p className="text-body-sm text-text-secondary">{t.noBackend}</p>
         </Card>
       )}
 
       <PermissionsSection />
       <PracticeSection />
 
-      <Card title="Modo demo" icon={<FlaskConical size={20} />}>
+      <Card title={t.demoTitle} icon={<FlaskConical size={20} />}>
         <Switch
-          label="Simular la alerta"
-          description={
-            demoMode ? 'Micrófono, ubicación, IA y envío simulados: nadie recibe nada.' : 'La alerta es real: avisa a tus contactos.'
-          }
+          label={t.demoSwitch}
+          description={demoMode ? t.demoOn : t.demoOff}
           checked={demoMode}
           onChange={(checked) => updateSettings({ demoMode: checked })}
         />
@@ -77,11 +72,16 @@ export function SettingsView() {
 
       <Card raised className="flex flex-col gap-4">
         <p className="text-body-sm text-text-secondary">
-          En el reloj, haz <b className="text-text-primary">doble toque</b> para activar la alerta y <b className="text-text-primary">triple toque</b> para detenerla. Para volver aquí,{' '}
-          <b className="text-text-primary">mantén presionado el reloj 2 segundos</b>.
+          {t.howTo[0]}
+          <b className="text-text-primary">{t.howTo[1]}</b>
+          {t.howTo[2]}
+          <b className="text-text-primary">{t.howTo[3]}</b>
+          {t.howTo[4]}
+          <b className="text-text-primary">{t.howTo[5]}</b>
+          {t.howTo[6]}
         </p>
         <Button size="lg" icon={<Watch size={20} />} onClick={goToWatch} fullWidth>
-          Ir al reloj
+          {t.goToWatch}
         </Button>
       </Card>
     </main>

@@ -1,3 +1,5 @@
+import { getLanguage } from '../../i18n/currentLanguage'
+import { getMessages } from '../../i18n/language'
 import type { AlertCapture, CaptureListener, CaptureOptions } from './alertCapture'
 
 // Browser capture: MediaRecorder + Geolocation API. Works while the page is visible; if
@@ -9,14 +11,16 @@ function pickMimeType(): string {
   return PREFERRED_MIME_TYPES.find((type) => MediaRecorder.isTypeSupported(type)) ?? ''
 }
 
+const texts = () => getMessages(getLanguage()).capture
+
 function describeGeolocationError(error: GeolocationPositionError): string {
   switch (error.code) {
     case error.PERMISSION_DENIED:
-      return 'Permiso de ubicación denegado'
+      return texts().locationDenied
     case error.POSITION_UNAVAILABLE:
-      return 'Ubicación no disponible'
+      return texts().locationUnavailable
     default:
-      return 'La ubicación tardó demasiado'
+      return texts().locationTimeout
   }
 }
 
@@ -51,13 +55,13 @@ export function createWebCapture(): AlertCapture {
           { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 },
         )
       } else {
-        listener({ type: 'error', source: 'location', message: 'Este navegador no tiene geolocalización' })
+        listener({ type: 'error', source: 'location', message: texts().noGeolocation })
       }
 
       try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       } catch {
-        listener({ type: 'error', source: 'microphone', message: 'Permiso de micrófono denegado' })
+        listener({ type: 'error', source: 'microphone', message: texts().microphoneDenied })
         return
       }
       if (stopped) {

@@ -15,6 +15,8 @@ import {
   type AlertView,
 } from '../../features/contact/alertView'
 import { useAlertView } from '../../features/contact/useAlertView'
+import { LanguageProvider } from '../../i18n/LanguageProvider'
+import { useLanguage, useT } from '../../i18n/useT'
 import { cx } from '../../lib/cx'
 import { formatWatchTime } from '../../lib/formatDate'
 import { isNativeApp } from '../../lib/platform'
@@ -24,18 +26,16 @@ import { AlertMap } from './AlertMap'
 /** Colombia's national emergency line. */
 const EMERGENCY_NUMBER = '123'
 
-const stopReasonLabels = {
-  user: 'la detuvo',
-  'max-duration': 'terminó la grabación (5 min)',
-  error: 'se detuvo por un error',
-}
-
 const linkButton = cx(
   'inline-flex min-h-touch grow basis-40 items-center justify-center gap-2 whitespace-nowrap rounded-full px-6 text-body-sm font-semibold',
   'transition duration-150 ease-out-soft active:scale-97 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
 )
 
 function Header({ view, now }: { view: AlertView; now: number }) {
+  const t = useT()
+  const language = useLanguage()
+  const owner = ownerLabel(view, language)
+  const time = (at: number) => formatWatchTime(new Date(at), language)
   const active = view.status === 'active'
   const resolved = view.resolution !== null && !active
   return (
@@ -48,16 +48,12 @@ function Header({ view, now }: { view: AlertView; now: number }) {
         )}
       >
         <span className={cx('size-2 rounded-full bg-current', active && 'animate-live-pulse')} />
-        {active ? 'Alerta en curso' : resolved ? (view.resolution === 'safe' ? 'Está bien' : 'Falsa alarma') : 'Alerta finalizada'}
+        {active ? t.contact.badgeActive : resolved ? (view.resolution === 'safe' ? t.contact.badgeSafe : t.contact.badgeFalseAlarm) : t.contact.badgeEnded}
       </span>
-      <h1 className="text-headline font-semibold">
-        {ownerLabel(view)} activó una alerta silenciosa
-      </h1>
+      <h1 className="text-headline font-semibold">{t.contact.title(owner)}</h1>
       <p className="text-body-sm text-text-secondary">
-        Empezó a las {formatWatchTime(new Date(view.startedAt))} ({formatAgo(view.startedAt, now)})
-        {view.stoppedAt && view.stopReason
-          ? ` · ${view.stopReason === 'user' ? `${ownerLabel(view)} ${stopReasonLabels.user}` : stopReasonLabels[view.stopReason]} a las ${formatWatchTime(new Date(view.stoppedAt))}`
-          : ''}
+        {t.contact.startedAt(time(view.startedAt), formatAgo(view.startedAt, now, language))}
+        {view.stoppedAt && view.stopReason ? ` · ${t.contact.stopped(view.stopReason, owner, time(view.stoppedAt))}` : ''}
       </p>
       {view.message && (
         <blockquote className="rounded-lg border-l-4 border-primary bg-surface p-4 text-body-sm">“{view.message}”</blockquote>
@@ -68,9 +64,12 @@ function Header({ view, now }: { view: AlertView; now: number }) {
 
 // The owner said how it ended: the most important news, so it goes right under the title.
 function ResolutionBanner({ view }: { view: AlertView }) {
+  const t = useT()
+  const language = useLanguage()
   if (!view.resolution) return null
   const safe = view.resolution === 'safe'
-  const time = view.resolvedAt ? ` a las ${formatWatchTime(new Date(view.resolvedAt))}` : ''
+  const owner = ownerLabel(view, language)
+  const time = view.resolvedAt ? t.contact.atTime(formatWatchTime(new Date(view.resolvedAt), language)) : ''
   return (
     <div
       className={cx(
@@ -83,12 +82,14 @@ function ResolutionBanner({ view }: { view: AlertView }) {
       <p>
         {safe ? (
           <>
-            <b>{ownerLabel(view)} avisó que está bien</b>
-            {time}. Gracias por estar pendiente.
+            <b>{t.contact.safeTitle(owner)}</b>
+            {time}
+            {t.contact.safeRest}
           </>
         ) : (
           <>
-            <b>Falsa alarma:</b> {ownerLabel(view)} activó la alerta por error{time}. No hace falta hacer nada.
+            <b>{t.contact.falseAlarmTitle}</b>
+            {t.contact.falseAlarm(owner, time)}
           </>
         )}
       </p>
@@ -97,26 +98,30 @@ function ResolutionBanner({ view }: { view: AlertView }) {
 }
 
 function LocationCard({ view, now }: { view: AlertView; now: number }) {
+  const t = useT()
+  const language = useLanguage()
   const last = view.lastLocation ?? view.locations.at(-1) ?? null
   return (
-    <Card title="Ubicación" icon={<MapPin size={20} />} className="flex flex-col gap-4">
+    <Card title={t.contact.locationTitle} icon={<MapPin size={20} />} className="flex flex-col gap-4">
       <AlertMap locations={view.locations} live={view.status === 'active'} />
       {last ? (
         <p className="text-body-sm text-text-secondary">
-          {view.status === 'active' ? 'Actualizada' : 'Última ubicación'} {formatAgo(last.time, now)} · precisión ±
-          {Math.round(last.accuracy)} m
+          {(view.status === 'active' ? t.contact.locationUpdated : t.contact.locationLast)(
+            formatAgo(last.time, now, language),
+            Math.round(last.accuracy),
+          )}
         </p>
       ) : (
-        <p className="text-body-sm text-text-secondary">Aún no llega la ubicación. Puede tardar unos segundos.</p>
+        <p className="text-body-sm text-text-secondary">{t.contact.locationPending}</p>
       )}
       <div className="flex flex-wrap gap-3">
         {last && (
           <a href={directionsUrl(last)} target="_blank" rel="noreferrer" className={cx(linkButton, 'bg-brand-gradient text-on-accent shadow-glow')}>
-            <Navigation size={18} /> Cómo llegar
+            <Navigation size={18} /> {t.contact.directions}
           </a>
         )}
         <a href={`tel:${EMERGENCY_NUMBER}`} className={cx(linkButton, 'bg-danger text-on-accent')}>
-          <Phone size={18} /> Llamar al {EMERGENCY_NUMBER}
+          <Phone size={18} /> {t.contact.call(EMERGENCY_NUMBER)}
         </a>
       </div>
     </Card>
@@ -124,34 +129,36 @@ function LocationCard({ view, now }: { view: AlertView; now: number }) {
 }
 
 function SummaryCard({ view, now }: { view: AlertView; now: number }) {
+  const t = useT()
+  const language = useLanguage()
   const { summary, summaryStatus, summaryUpdatedAt, status } = view
   const generating = summaryStatus === 'generating'
   return (
-    <Card title="Resumen de lo que pasa" icon={<Sparkles size={20} />} className="flex flex-col gap-3" aria-live="polite">
+    <Card title={t.contact.summaryTitle} icon={<Sparkles size={20} />} className="flex flex-col gap-3" aria-live="polite">
       {summary && <p className="text-body">{summary}</p>}
       {generating && (
         <p className="flex items-center gap-2 text-body-sm text-text-secondary">
           <Loader2 size={16} className="animate-spin text-primary" />
-          {summary ? 'Actualizando el resumen con el audio nuevo…' : 'Generando resumen…'}
+          {summary ? t.contact.summaryUpdating : t.contact.summaryGenerating}
         </p>
       )}
       {!summary && summaryStatus === 'waiting' && (
         <p className="text-body-sm text-text-secondary">
           {status === 'active'
-            ? 'El resumen aparecerá cuando llegue el primer audio (cada 20 segundos).'
+            ? t.contact.summaryWaitingLive
             : view.chunks.length === 0
-              ? 'Esta alerta no tiene audio, así que no hay resumen.'
-              : 'Esperando el resto del audio para el resumen…'}
+              ? t.contact.summaryNoAudio
+              : t.contact.summaryWaitingRest}
         </p>
       )}
       {summaryStatus === 'error' && (
-        <p className="text-body-sm text-text-secondary">No se pudo generar el resumen. Escucha los audios abajo.</p>
+        <p className="text-body-sm text-text-secondary">{t.contact.summaryError}</p>
       )}
       {summary && (
         <p className="text-caption text-text-secondary">
-          {status === 'active' ? 'Resumen parcial' : 'Resumen final'}
-          {summaryUpdatedAt ? ` · ${formatAgo(summaryUpdatedAt, now)}` : ''} · Hecho con IA: puede tener errores, confirma con
-          los audios.
+          {status === 'active' ? t.contact.summaryPartial : t.contact.summaryFinal}
+          {summaryUpdatedAt ? ` · ${formatAgo(summaryUpdatedAt, now, language)}` : ''}
+          {t.contact.summaryDisclaimer}
         </p>
       )}
     </Card>
@@ -159,15 +166,16 @@ function SummaryCard({ view, now }: { view: AlertView; now: number }) {
 }
 
 function AudioCard({ view }: { view: AlertView }) {
+  const t = useT()
   const { chunks, status } = view
   return (
-    <Card title="Audio" icon={<AudioLines size={20} />} className="flex flex-col gap-3">
+    <Card title={t.contact.audioTitle} icon={<AudioLines size={20} />} className="flex flex-col gap-3">
       <p className="text-body-sm text-text-secondary">
         {chunks.length === 0
           ? status === 'active'
-            ? 'El primer fragmento llega a los 20 segundos de grabación.'
-            : 'No se recibió audio en esta alerta.'
-          : `${chunks.length} fragmento${chunks.length === 1 ? '' : 's'} · ${formatDuration(totalAudioMs(chunks))} grabados${status === 'active' ? ' hasta ahora' : ''}`}
+            ? t.contact.audioFirstSoon
+            : t.contact.audioNone
+          : t.contact.audioSummary(chunks.length, formatDuration(totalAudioMs(chunks)), status === 'active')}
       </p>
       <ol className="flex flex-col gap-3">
         {chunks.map((chunk) => (
@@ -176,16 +184,16 @@ function AudioCard({ view }: { view: AlertView }) {
             {chunk.audioUrl ? (
               <audio controls preload="none" src={chunk.audioUrl} className="w-full" />
             ) : (
-              <span className="text-caption text-text-secondary">Audio de demostración (sin sonido)</span>
+              <span className="text-caption text-text-secondary">{t.contact.audioDemo}</span>
             )}
             <p className="text-body-sm">
-              {chunk.transcriptStatus === 'done' && (chunk.transcript || <span className="text-text-secondary">Sin voz reconocible.</span>)}
+              {chunk.transcriptStatus === 'done' && (chunk.transcript || <span className="text-text-secondary">{t.contact.noSpeech}</span>)}
               {chunk.transcriptStatus === 'pending' && (
                 <span className="flex items-center gap-2 text-text-secondary">
-                  <Loader2 size={14} className="animate-spin" /> Transcribiendo…
+                  <Loader2 size={14} className="animate-spin" /> {t.contact.transcribing}
                 </span>
               )}
-              {chunk.transcriptStatus === 'error' && <span className="text-text-secondary">No se pudo transcribir.</span>}
+              {chunk.transcriptStatus === 'error' && <span className="text-text-secondary">{t.contact.transcriptError}</span>}
             </p>
           </li>
         ))}
@@ -207,43 +215,50 @@ function Message({ title, children }: { title: string; children: ReactNode }) {
 
 // What the trusted contact opens from the Telegram link: who, where (live map), what is
 // happening (AI summary + audio with transcripts) and what to do. Also reachable from the
-// owner's alert history.
+// owner's alert history. Shown in the language of the person who raised the alert.
 export function ContactAlertView() {
   const { alertId = '' } = useParams()
   const valid = alertId === 'demo' || isAlertId(alertId)
-  const { view, notFound, offline } = useAlertView(valid ? alertId : 'demo')
+  const uiLanguage = useLanguage()
+  const { view, notFound, offline } = useAlertView(valid ? alertId : 'demo', uiLanguage)
   const now = useNow().getTime()
+  const t = useT()
 
   if (!valid || notFound) {
-    return <Message title="Alerta no encontrada">El enlace no es válido o la alerta ya expiró (se guardan 30 días).</Message>
+    return <Message title={t.contact.notFoundTitle}>{t.contact.notFound}</Message>
   }
   if (!view) {
-    return (
-      <Message title="Cargando la alerta…">
-        {offline ? 'No hay conexión. Reintentando…' : 'Un momento.'}
-      </Message>
-    )
+    return <Message title={t.contact.loadingTitle}>{offline ? t.contact.loadingOffline : t.contact.loading}</Message>
   }
 
   return (
-    <main className="mx-auto flex max-w-content flex-col gap-4 px-gutter pb-section animate-screen-in">
+    <LanguageProvider language={view.language}>
+      <AlertPage view={view} now={now} offline={offline} />
+    </LanguageProvider>
+  )
+}
+
+function AlertPage({ view, now, offline }: { view: AlertView; now: number; offline: boolean }) {
+  const t = useT()
+  return (
+    <main className="mx-auto flex max-w-content flex-col gap-4 px-gutter pb-section animate-screen-in" lang={view.language}>
       {isNativeApp() && (
         <Link to={routes.settings} className="inline-flex min-h-touch items-center gap-2 self-start text-body-sm text-text-secondary">
-          <ArrowLeft size={18} /> Volver a Configuración
+          <ArrowLeft size={18} /> {t.contact.backToSettings}
         </Link>
       )}
       <Header view={view} now={now} />
       <ResolutionBanner view={view} />
       {offline && (
         <p className="flex items-center gap-2 rounded-lg bg-surface p-3 text-body-sm text-warning" role="status">
-          <WifiOff size={16} /> Sin conexión: mostrando los últimos datos. Reintentando…
+          <WifiOff size={16} /> {t.contact.offline}
         </p>
       )}
       <LocationCard view={view} now={now} />
       <SummaryCard view={view} now={now} />
       <AudioCard view={view} />
       <p className="text-center text-caption text-text-secondary">
-        Voz Segura · {view.status === 'active' ? 'Esta página se actualiza sola.' : 'Alerta guardada por 30 días.'}
+        Voz Segura · {view.status === 'active' ? t.contact.footerLive : t.contact.footerSaved}
       </p>
     </main>
   )

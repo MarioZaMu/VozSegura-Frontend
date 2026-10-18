@@ -13,15 +13,11 @@ import {
   type Contact,
   type ContactStatus,
 } from '../../features/settings/settingsApi'
+import type { Messages } from '../../i18n/messages'
+import { useT } from '../../i18n/useT'
 import { cx } from '../../lib/cx'
 import { copyText, shareLink, type ShareResult } from '../../lib/share'
 import { useContacts } from './useContacts'
-
-const statusLabels: Record<ContactStatus, string> = {
-  pending: 'Pendiente',
-  confirmed: 'Confirmado',
-  left: 'Se dio de baja',
-}
 
 const statusClasses: Record<ContactStatus, string> = {
   pending: 'text-warning',
@@ -29,20 +25,15 @@ const statusClasses: Record<ContactStatus, string> = {
   left: 'text-text-secondary',
 }
 
-const shareFeedback: Record<ShareResult, string> = {
-  shared: '',
-  copied: 'Enlace copiado. Pégalo en un chat con tu contacto.',
-  failed: 'No se pudo compartir. Usa “Copiar enlace”.',
-}
-
-function inviteText(name: string) {
-  return `Hola ${name}, te agregué como contacto de confianza en Voz Segura. Si algún día activo una alerta silenciosa, te llegará por Telegram con mi ubicación. Abre este enlace y toca “Iniciar”:`
+function shareFeedback(result: ShareResult, t: Messages['contacts']): string {
+  return { shared: '', copied: t.copied, failed: t.shareFailed }[result]
 }
 
 function StatusChip({ status }: { status: ContactStatus }) {
+  const t = useT().contacts
   return (
     <span className={cx('rounded-full bg-surface-raised px-3 py-1 text-caption font-medium', statusClasses[status])}>
-      {statusLabels[status]}
+      {t.status[status]}
     </span>
   )
 }
@@ -57,6 +48,7 @@ type ContactRowProps = {
 }
 
 function ContactRow({ contact, inviteUrl, onShare, onCopy, onRemove, busy }: ContactRowProps) {
+  const t = useT().contacts
   const [confirmRemove, setConfirmRemove] = useState(false)
   const waiting = contact.status !== 'confirmed'
 
@@ -72,31 +64,31 @@ function ContactRow({ contact, inviteUrl, onShare, onCopy, onRemove, busy }: Con
         <StatusChip status={contact.status} />
       </div>
       {contact.status === 'pending' && (
-        <p className="text-caption text-text-secondary">Esperando a que abra el enlace y toque “Iniciar” en Telegram.</p>
+        <p className="text-caption text-text-secondary">{t.waitingStart}</p>
       )}
       <div className="flex flex-wrap gap-2">
         {waiting && (
           <Button variant="secondary" icon={<Send size={16} />} onClick={() => onShare(contact)} disabled={busy}>
-            {inviteUrl ? 'Compartir' : 'Nuevo enlace'}
+            {inviteUrl ? t.share : t.newLink}
           </Button>
         )}
         {waiting && inviteUrl && (
           <Button variant="ghost" icon={<Copy size={16} />} onClick={() => onCopy(contact)}>
-            Copiar enlace
+            {t.copyLink}
           </Button>
         )}
         {confirmRemove ? (
           <>
             <Button variant="danger" onClick={() => onRemove(contact)} disabled={busy}>
-              Quitar
+              {t.remove}
             </Button>
             <Button variant="ghost" onClick={() => setConfirmRemove(false)}>
-              Cancelar
+              {t.cancel}
             </Button>
           </>
         ) : (
-          <Button variant="ghost" icon={<Trash2 size={16} />} onClick={() => setConfirmRemove(true)} aria-label={`Quitar a ${contact.name}`}>
-            Quitar
+          <Button variant="ghost" icon={<Trash2 size={16} />} onClick={() => setConfirmRemove(true)} aria-label={t.removeLabel(contact.name)}>
+            {t.remove}
           </Button>
         )}
       </div>
@@ -107,6 +99,7 @@ function ContactRow({ contact, inviteUrl, onShare, onCopy, onRemove, busy }: Con
 // Trusted contacts. Each one joins by opening a Telegram invite (t.me/<bot>?start=<code>);
 // only confirmed contacts receive alerts.
 export function ContactsSection() {
+  const t = useT().contacts
   const { contacts, failed, setContacts } = useContacts()
   const [name, setName] = useState('')
   const [busy, setBusy] = useState(false)
@@ -115,8 +108,8 @@ export function ContactsSection() {
   const [inviteUrls, setInviteUrls] = useState<Record<string, string>>({})
 
   const share = async (contact: Contact, url: string) => {
-    const result = await shareLink({ title: 'Invitación a Voz Segura', text: inviteText(contact.name), url })
-    setFeedback(shareFeedback[result])
+    const result = await shareLink({ title: t.inviteTitle, text: t.inviteText(contact.name), url })
+    setFeedback(shareFeedback(result, t))
   }
 
   const add = async () => {
@@ -131,7 +124,7 @@ export function ContactsSection() {
       setName('')
       await share(contact, inviteUrl)
     } catch (error) {
-      setFeedback(error instanceof ApiError && error.status === 409 ? `Máximo ${MAX_CONTACTS} contactos.` : 'No se pudo agregar. Revisa tu conexión.')
+      setFeedback(error instanceof ApiError && error.status === 409 ? t.max(MAX_CONTACTS) : t.addFailed)
     } finally {
       setBusy(false)
     }
@@ -148,7 +141,7 @@ export function ContactsSection() {
       setInviteUrls((current) => ({ ...current, [renewed.id]: inviteUrl }))
       await share(renewed, inviteUrl)
     } catch {
-      setFeedback('No se pudo crear el enlace. Revisa tu conexión.')
+      setFeedback(t.linkFailed)
     } finally {
       setBusy(false)
     }
@@ -156,7 +149,7 @@ export function ContactsSection() {
 
   const copy = async (contact: Contact) => {
     const url = inviteUrls[contact.id]
-    if (url) setFeedback((await copyText(url)) === 'copied' ? shareFeedback.copied : shareFeedback.failed)
+    if (url) setFeedback(shareFeedback((await copyText(url)) === 'copied' ? 'copied' : 'failed', t))
   }
 
   const remove = async (contact: Contact) => {
@@ -165,7 +158,7 @@ export function ContactsSection() {
       await removeContact(contact.id)
       setContacts((current) => (current ?? []).filter((item) => item.id !== contact.id))
     } catch {
-      setFeedback('No se pudo quitar. Revisa tu conexión.')
+      setFeedback(t.removeFailed)
     } finally {
       setBusy(false)
     }
@@ -175,17 +168,15 @@ export function ContactsSection() {
   const full = (contacts?.length ?? 0) >= MAX_CONTACTS
 
   return (
-    <Card title="Contactos de confianza" icon={<Users size={20} />} className="flex flex-col gap-4">
-      <p className="text-body-sm text-text-secondary">
-        Recibirán tus alertas por Telegram. Agrega a alguien y envíale la invitación; cuando toque “Iniciar” quedará confirmado.
-      </p>
+    <Card title={t.title} icon={<Users size={20} />} className="flex flex-col gap-4">
+      <p className="text-body-sm text-text-secondary">{t.intro}</p>
 
-      {contacts === null && !failed && <p className="text-body-sm text-text-secondary">Cargando…</p>}
-      {failed && contacts === null && <p className="text-body-sm text-danger">No se pudieron cargar tus contactos. Revisa tu conexión.</p>}
+      {contacts === null && !failed && <p className="text-body-sm text-text-secondary">{t.loading}</p>}
+      {failed && contacts === null && <p className="text-body-sm text-danger">{t.loadFailed}</p>}
 
       {contacts !== null && contacts.length === 0 && (
         <p className="rounded-lg bg-surface-raised/50 p-4 text-body-sm text-text-secondary">
-          Aún no tienes contactos. Mientras tanto, las alertas reales van al contacto de prueba del proyecto.
+          {t.empty}
         </p>
       )}
 
@@ -193,7 +184,7 @@ export function ContactsSection() {
         <>
           <p className="text-body-sm" aria-live="polite">
             <Link2 size={14} className="mr-1 inline text-primary" />
-            {confirmed} de {contacts.length} confirmado{contacts.length === 1 ? '' : 's'}
+            {t.confirmedCount(confirmed, contacts.length)}
           </p>
           <ul className="flex flex-col gap-3">
             {contacts.map((contact) => (
@@ -213,16 +204,16 @@ export function ContactsSection() {
 
       <div className="flex flex-col gap-3">
         <TextField
-          label="Nuevo contacto"
+          label={t.newContact}
           value={name}
           onChange={setName}
-          placeholder="Nombre (ej. Mamá)"
+          placeholder={t.namePlaceholder}
           maxLength={MAX_NAME_LENGTH}
           disabled={busy || full || contacts === null}
           onEnter={add}
         />
         <Button icon={<UserPlus size={18} />} onClick={add} disabled={busy || full || !name.trim() || contacts === null} fullWidth>
-          {busy ? 'Un momento…' : 'Agregar e invitar'}
+          {busy ? t.adding : t.add}
         </Button>
       </div>
       {feedback && (

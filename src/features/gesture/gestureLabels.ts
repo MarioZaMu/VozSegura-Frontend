@@ -1,26 +1,16 @@
-import type { GestureEvent, TapRejection } from './doubleTapDetector'
+import type { Messages } from '../../i18n/messages'
+import type { GestureEvent } from './doubleTapDetector'
 
-// Spanish explanations of each rejection, shown in diagnostics and gesture practice.
-export const rejectionLabels: Record<TapRejection, string> = {
-  'not-armed': 'Ignorado: la pantalla se acaba de mostrar',
-  cooldown: 'Ignorado: la alerta se acaba de activar',
-  'multi-touch': 'Rechazado: más de un dedo',
-  palm: 'Rechazado: contacto muy grande (palma)',
-  moved: 'Rechazado: el dedo se deslizó',
-  'long-press': 'Rechazado: toque demasiado largo',
-  'too-fast': 'Rechazado: segundo toque demasiado rápido',
-  'too-far': 'Rechazado: toques muy separados',
-}
-
-export function describeGestureEvent(event: GestureEvent): string {
+// How each touch was interpreted, shown in diagnostics and gesture practice.
+export function describeGestureEvent(event: GestureEvent, t: Messages): string {
   switch (event.type) {
     case 'tap':
-      return 'Primer toque'
+      return t.gesture.tap
     case 'double-tap':
-      return 'Doble toque reconocido'
+      return t.gesture.doubleTap
     case 'triple-tap':
-      return 'Triple toque reconocido'
+      return t.gesture.tripleTap
     case 'rejected':
-      return rejectionLabels[event.reason]
+      return t.gesture.rejections[event.reason]
   }
 }

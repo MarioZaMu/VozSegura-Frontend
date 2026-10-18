@@ -5,11 +5,13 @@ import { WatchScreen } from '../../components/watch/WatchScreen'
 import { describeGestureEvent } from '../../features/gesture/gestureLabels'
 import { usePanicGesture } from '../../features/gesture/usePanicGesture'
 import { useSettings } from '../../features/settings/settingsStore'
+import { useT } from '../../i18n/useT'
 import { cx } from '../../lib/cx'
 
 // Practice pad: the exact same detector and vibration as the watch, but recognizing the
 // gesture only counts it. It never starts an alert.
 export function PracticeSection() {
+  const t = useT()
   const { watchShape } = useSettings()
   const [recognized, setRecognized] = useState({ double: 0, triple: 0 })
   const onActivate = useCallback(() => setRecognized((count) => ({ ...count, double: count.double + 1 })), [])
@@ -21,28 +23,32 @@ export function PracticeSection() {
   const last = events[0]
 
   return (
-    <Card title="Practicar el gesto" icon={<Hand size={20} />} className="flex flex-col gap-4">
+    <Card title={t.practice.title} icon={<Hand size={20} />} className="flex flex-col gap-4">
       <p className="text-body-sm text-text-secondary">
-        <b>Doble toque</b> activa la alerta (una vibración). <b>Triple toque</b>, con la alerta activa, la detiene (dos
-        vibraciones). Pruébalos aquí: sentirás lo mismo que en el reloj, pero <b>no se envía ninguna alerta</b>.
+        <b>{t.practice.intro[0]}</b>
+        {t.practice.intro[1]}
+        <b>{t.practice.intro[2]}</b>
+        {t.practice.intro[3]}
+        <b>{t.practice.intro[4]}</b>
+        {t.practice.intro[5]}
       </p>
       <WatchScreen shape={watchShape} className="size-48 self-center ring-1 ring-watch-track">
         <div className="absolute inset-0 touch-manipulation" {...handlers}>
           <div key={blinkKey} className={cx('grid size-full place-items-center', blinkKey > 0 && 'animate-subtle-blink')}>
-            <span className="text-body-sm text-watch-muted">Toca dos veces</span>
+            <span className="text-body-sm text-watch-muted">{t.practice.pad}</span>
           </div>
         </div>
       </WatchScreen>
       <p className="text-center text-body-sm" aria-live="polite">
         {last ? (
           <span className={last.type === 'double-tap' || last.type === 'triple-tap' ? 'text-success' : last.type === 'rejected' ? 'text-warning' : ''}>
-            {describeGestureEvent(last)}
+            {describeGestureEvent(last, t)}
           </span>
         ) : (
-          <span className="text-text-secondary">Aún no hay toques.</span>
+          <span className="text-text-secondary">{t.gesture.noTaps}</span>
         )}
         <span className="block text-caption text-text-secondary">
-          Dobles: {recognized.double} · Triples: {recognized.triple}
+          {t.practice.counts(recognized.double, recognized.triple)}
         </span>
       </p>
     </Card>
