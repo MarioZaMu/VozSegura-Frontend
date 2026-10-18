@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="public/icon-512.png" alt="Logo de Voz Segura" width="120" />
+</p>
+
 # Voz Segura — Frontend
 
 Botón de pánico silencioso para smartwatch, caso de estudio de **Diseño de Interfaces de
@@ -19,17 +23,11 @@ audio con IA) está en [VozSegura-backend](https://github.com/MarioZaMu/VozSegur
 
 ## Abrirla en línea
 
-No hay que instalar nada: abre el enlace en el PC o en el celular.
+👉 **[voz-segura-frontend.vercel.app](https://voz-segura-frontend.vercel.app)** — en el PC o en el celular, sin instalar nada.
 
-| Qué | Enlace |
-| --- | ------ |
-| **App (Reloj)** | [voz-segura-frontend.vercel.app](https://voz-segura-frontend.vercel.app) |
-| Configuración | [voz-segura-frontend.vercel.app/configuracion](https://voz-segura-frontend.vercel.app/configuracion) |
-| Vista Contacto (demo simulada) | [voz-segura-frontend.vercel.app/alerta/demo](https://voz-segura-frontend.vercel.app/alerta/demo) |
-| Sistema de diseño | [voz-segura-frontend.vercel.app/sistema-diseno](https://voz-segura-frontend.vercel.app/sistema-diseno) |
-
-- **En el PC** se ve el mockup del reloj con la navegación entre vistas. Haz doble clic
-  rápido en la carátula para probar el gesto.
+- **En el PC** se ve el mockup del reloj y arriba la navegación entre las vistas (Reloj,
+  Configuración, Contacto demo y Diseño). Haz doble clic rápido en la carátula para probar
+  el gesto.
 - **En el celular** el reloj ocupa toda la pantalla; desde el menú del navegador se puede
   "Agregar a la pantalla principal". Para grabar con la pantalla bloqueada usa la app
   Android (ver [App Android](#app-android-capacitor)).
