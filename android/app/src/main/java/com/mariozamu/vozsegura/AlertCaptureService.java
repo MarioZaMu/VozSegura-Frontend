@@ -102,7 +102,7 @@ public class AlertCaptureService extends Service {
     @Nullable
     private AlertUploader uploader;
     /** Mirror of files/alerts/{alertId}/meta.json, see PendingAlerts. */
-    private final JSONObject meta = new JSONObject();
+    private JSONObject meta = new JSONObject();
 
     @Nullable
     @Override
@@ -116,17 +116,29 @@ public class AlertCaptureService extends Service {
             stopCapture("user");
             return START_NOT_STICKY;
         }
-        if (running || draining) return START_NOT_STICKY; // one alert at a time
+        if (running) return START_NOT_STICKY; // one recording at a time (JS guards it too)
+        if (draining) {
+            // A new alert while the previous one is still being sent: that upload keeps going
+            // on its own threads, and from now on only the new alert decides when we stop.
+            handler.removeCallbacksAndMessages(null);
+            draining = false;
+            if (wakeLock != null && wakeLock.isHeld()) wakeLock.release();
+        }
 
         String alertId = intent.getStringExtra(EXTRA_ALERT_ID);
         chunkMillis = intent.getIntExtra(EXTRA_CHUNK_SECONDS, 20) * 1000L;
         long maxDurationMillis = intent.getIntExtra(EXTRA_MAX_DURATION_SECONDS, 300) * 1000L;
         String apiBaseUrl = intent.getStringExtra(EXTRA_API_BASE_URL);
         String apiToken = intent.getStringExtra(EXTRA_API_TOKEN);
+        File dir = new File(getFilesDir(), "alerts/" + alertId);
+        JSONObject alertMeta = new JSONObject();
         uploader = apiBaseUrl == null || apiBaseUrl.isEmpty() || apiToken == null
                 ? null
                 : new AlertUploader(apiBaseUrl, apiToken, alertId, intent.getStringExtra(EXTRA_DEVICE_ID),
-                        intent.getLongExtra(EXTRA_STARTED_AT, System.currentTimeMillis()), this::emitDelivery);
+                        intent.getLongExtra(EXTRA_STARTED_AT, System.currentTimeMillis()), (item, ok, index) -> {
+                            if ("stop".equals(item) && ok) putMeta(dir, alertMeta, "stopSent", true);
+                            emitDelivery(item, ok, index);
+                        });
 
         boolean canRecord = hasPermission(Manifest.permission.RECORD_AUDIO);
         boolean canLocate = hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -139,9 +151,9 @@ public class AlertCaptureService extends Service {
             // Nothing to record, but the contacts are still warned (the app is in the
             // foreground right after the gesture, so a plain service may use the network).
             if (uploader != null) {
-                draining = true;
+                alertDir = null; // nothing recorded, no folder
                 uploader.sendAlert();
-                uploader.finish("error", 0, () -> handler.post(this::shutdown));
+                finishUpload("error", 0);
             } else {
                 stopSelf();
             }
@@ -168,7 +180,8 @@ public class AlertCaptureService extends Service {
         stopping = false;
         currentAlertId = alertId;
         chunkCount = 0;
-        alertDir = new File(getFilesDir(), "alerts/" + alertId);
+        alertDir = dir;
+        meta = alertMeta;
         //noinspection ResultOfMethodCallIgnored
         alertDir.mkdirs();
         busyAlertId = alertId;
@@ -296,9 +309,19 @@ public class AlertCaptureService extends Service {
             return;
         }
         // Stay in the foreground (and awake) until the last chunk and the stop are sent.
-        draining = true;
-        uploader.finish(reason, chunkCount, () -> handler.post(this::shutdown));
+        finishUpload(reason, chunkCount);
         handler.postDelayed(this::shutdown, DRAIN_TIMEOUT_MS);
+    }
+
+    /** Sends the stop; the service shuts down afterwards unless a newer alert took over. */
+    private void finishUpload(String reason, int totalChunks) {
+        AlertUploader finishing = uploader;
+        File dir = alertDir;
+        draining = true;
+        finishing.finish(reason, totalChunks, () -> handler.post(() -> {
+            if (uploader == finishing) shutdown();
+            else if (dir != null) PendingAlerts.deleteIfDone(dir);
+        }));
     }
 
     private void shutdown() {
@@ -394,17 +417,23 @@ public class AlertCaptureService extends Service {
 
     // ---- meta.json ----
 
-    private synchronized void updateMeta(String key, @Nullable Object value) {
-        if (alertDir == null) return;
+    private void updateMeta(String key, @Nullable Object value) {
+        putMeta(alertDir, meta, key, value);
+    }
+
+    /** Also called from the uploader threads, possibly for an older alert still being sent. */
+    private synchronized void putMeta(@Nullable File dir, JSONObject target, String key, @Nullable Object value) {
+        if (dir == null || !dir.isDirectory()) return;
         try {
-            meta.put(key, value);
+            target.put(key, value);
         } catch (JSONException e) {
             return;
         }
-        PendingAlerts.writeMeta(alertDir, meta);
+        PendingAlerts.writeMeta(dir, target);
     }
 
     private synchronized void recordDuration(int index, long durationMs) {
+        if (alertDir == null) return;
         JSONObject durations = meta.optJSONObject("durations");
         if (durations == null) return;
         try {
@@ -417,7 +446,6 @@ public class AlertCaptureService extends Service {
 
     /** Called from the uploader threads. */
     private void emitDelivery(String item, boolean ok, int index) {
-        if ("stop".equals(item) && ok) updateMeta("stopSent", true);
         JSObject event = new JSObject();
         event.put("type", "delivery");
         event.put("item", item);
