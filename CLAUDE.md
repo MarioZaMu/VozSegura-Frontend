@@ -40,6 +40,8 @@ rewrites every path to `index.html` so client routes survive a reload.
 src/
   app/        router, route paths, root layout
   components/ ui/ (generic base components), watch/ (mockup and screen)
+  features/   domain logic + UI: settings/ (persisted store), watch/ (display mode),
+              watch-face/ (idle face + simulated data)
   views/      one folder per view: watch/, settings/, contact/
   lib/        framework-free helpers (config, storage, api…)
   styles/     index.css with Tailwind @theme design tokens
@@ -104,11 +106,30 @@ screen on the phone), `watchShape.ts` (round | square).
 - **Known limitation:** the PWA must stay in the foreground; if the phone locks, the
   browser may stop recording/location. Screen Wake Lock API keeps it on.
 
+## Watch view behavior
+
+- **Display mode** (`useWatchDisplayMode`): `fullscreen` when installed (display-mode
+  standalone/fullscreen) or on a phone-sized touch screen (`pointer: coarse` and
+  ≤640px); otherwise `mockup`. Override with `?vista=reloj` or `?vista=mockup`.
+- **Full screen:** black background, the watch screen as the largest circle/square that
+  fits (`size-watch-fullscreen`) with a faint outline, status bar painted black via
+  `theme-color`, and no navigation at all.
+- **Mockup (PC):** device mockup plus a card with shape selector and demo-mode switch.
+- **Idle face** (`WatchFace`): time (24 h), Spanish date, temperature, steps ring and heart
+  rate. Data is simulated and deterministic per minute (`simulatedWatchData.ts`).
+
+## Settings store
+
+`features/settings/settingsStore.ts`: module-level store + `useSyncExternalStore`,
+persisted in localStorage (`voz-segura:settings:v1`) through the safe helpers in
+`lib/storage.ts`, and synced across tabs with the `storage` event. Fields so far:
+`demoMode` (default **on**, so the classroom demo works out of the box) and `watchShape`.
+
 ## Phases
 
 1. ✅ Setup: repos, Vite + React + TS + Tailwind, structure, routes, docs
 2. ✅ Design system: tokens, typography, base components, watch mockup round/square
-3. Idle watch face, full-screen watch mode on phone, demo mode switch
+3. ✅ Idle watch face, full-screen watch mode on phone, demo mode switch
 4. Double-tap detection (accidental-tap prevention) + discreet vibration
 5. Active state: real audio + location, without revealing anything
 6. Settings: contacts, message, gesture practice, history
