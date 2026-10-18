@@ -13,6 +13,7 @@ import { useWatchDisplayMode } from '../../features/watch/useWatchDisplayMode'
 import { WatchFace } from '../../features/watch-face/WatchFace'
 import { isDebugEnabled } from '../../lib/debug'
 import { canVibrate } from '../../lib/haptics'
+import { useKeepAwake } from '../../lib/useKeepAwake'
 import { useNow } from '../../lib/useNow'
 
 const shapeOptions = (Object.keys(watchShapeLabels) as WatchShape[]).map((value) => ({
@@ -60,6 +61,7 @@ export function WatchView() {
   const isFullscreen = displayMode === 'fullscreen'
 
   useThemeColor(WATCH_THEME_COLOR, isFullscreen)
+  useKeepAwake(isFullscreen)
 
   // Phase 5 starts recording and location here.
   const handleActivate = useCallback(() => {}, [])
