@@ -26,6 +26,9 @@ import androidx.core.app.ServiceCompat;
 import androidx.core.content.ContextCompat;
 
 import com.getcapacitor.JSObject;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -41,7 +44,8 @@ import java.util.Locale;
  * active, even with the screen locked (the WebView's JavaScript pauses then).
  *
  * - Audio: AAC in .m4a chunks (one MediaRecorder per chunk, so each file plays on its own),
- *   stored in files/alerts/{alertId}/. Uploading them is added with the backend (phase 8).
+ *   stored in files/alerts/{alertId}/ with a meta.json; whatever is not sent is resent by
+ *   PendingAlerts the next time the app opens.
  * - Location: fused provider, high accuracy, every ~10 s.
  * - Delivery: AlertUploader sends the alert, positions and each finished chunk to the backend
  *   (deleting the file once uploaded) and keeps the service alive until the stop is sent.
@@ -80,6 +84,8 @@ public class AlertCaptureService extends Service {
     static volatile boolean running;
     static volatile String currentAlertId;
     static volatile int chunkCount;
+    /** Alert whose folder is in use (recording or still sending); PendingAlerts skips it. */
+    static volatile String busyAlertId;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private PowerManager.WakeLock wakeLock;
@@ -95,6 +101,8 @@ public class AlertCaptureService extends Service {
     private boolean draining;
     @Nullable
     private AlertUploader uploader;
+    /** Mirror of files/alerts/{alertId}/meta.json, see PendingAlerts. */
+    private final JSONObject meta = new JSONObject();
 
     @Nullable
     @Override
@@ -163,6 +171,11 @@ public class AlertCaptureService extends Service {
         alertDir = new File(getFilesDir(), "alerts/" + alertId);
         //noinspection ResultOfMethodCallIgnored
         alertDir.mkdirs();
+        busyAlertId = alertId;
+        updateMeta("alertId", alertId);
+        updateMeta("startedAt", intent.getLongExtra(EXTRA_STARTED_AT, System.currentTimeMillis()));
+        updateMeta("deviceId", intent.getStringExtra(EXTRA_DEVICE_ID));
+        updateMeta("durations", new JSONObject());
 
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "VozSegura:capture");
@@ -254,6 +267,7 @@ public class AlertCaptureService extends Service {
         }
         recorder.release();
         recorder = null;
+        recordDuration(chunkCount, durationMs);
         emitChunk(chunkCount, currentChunkFile, durationMs);
         if (uploader != null) uploader.sendChunk(chunkCount, currentChunkFile, durationMs);
         chunkCount++;
@@ -273,6 +287,8 @@ public class AlertCaptureService extends Service {
             locationClient.removeLocationUpdates(locationCallback);
         }
         running = false;
+        updateMeta("stopReason", reason);
+        updateMeta("totalChunks", chunkCount);
         emitStopped(reason);
         Log.i(TAG, "Capture stopped (" + reason + ") with " + chunkCount + " chunks");
         if (uploader == null) {
@@ -291,11 +307,9 @@ public class AlertCaptureService extends Service {
         draining = false;
         uploader = null;
         if (wakeLock != null && wakeLock.isHeld()) wakeLock.release();
-        if (alertDir != null) {
-            String[] left = alertDir.list();
-            //noinspection ResultOfMethodCallIgnored
-            if (left != null && left.length == 0) alertDir.delete();
-        }
+        // Anything not sent stays for PendingAlerts.flush() the next time the app opens.
+        if (alertDir != null) PendingAlerts.deleteIfDone(alertDir);
+        busyAlertId = null;
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
         stopSelf();
         Log.i(TAG, "Service finished");
@@ -378,8 +392,32 @@ public class AlertCaptureService extends Service {
         }
     }
 
+    // ---- meta.json ----
+
+    private synchronized void updateMeta(String key, @Nullable Object value) {
+        if (alertDir == null) return;
+        try {
+            meta.put(key, value);
+        } catch (JSONException e) {
+            return;
+        }
+        PendingAlerts.writeMeta(alertDir, meta);
+    }
+
+    private synchronized void recordDuration(int index, long durationMs) {
+        JSONObject durations = meta.optJSONObject("durations");
+        if (durations == null) return;
+        try {
+            durations.put(String.valueOf(index), durationMs);
+        } catch (JSONException e) {
+            return;
+        }
+        PendingAlerts.writeMeta(alertDir, meta);
+    }
+
     /** Called from the uploader threads. */
     private void emitDelivery(String item, boolean ok, int index) {
+        if ("stop".equals(item) && ok) updateMeta("stopSent", true);
         JSObject event = new JSObject();
         event.put("type", "delivery");
         event.put("item", item);

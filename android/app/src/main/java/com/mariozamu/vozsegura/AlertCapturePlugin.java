@@ -73,6 +73,20 @@ public class AlertCapturePlugin extends Plugin {
         call.resolve();
     }
 
+    /** Resends audio left from earlier alerts (see PendingAlerts). Returns at once. */
+    @PluginMethod
+    public void flushPending(PluginCall call) {
+        String apiBaseUrl = call.getString("apiBaseUrl", "");
+        String apiToken = call.getString("apiToken");
+        if (apiBaseUrl == null || apiBaseUrl.isEmpty() || apiToken == null) {
+            call.reject("apiBaseUrl and apiToken are required");
+            return;
+        }
+        JSObject result = new JSObject();
+        result.put("pending", PendingAlerts.flush(getContext(), apiBaseUrl, apiToken));
+        call.resolve(result);
+    }
+
     @PluginMethod
     public void getStatus(PluginCall call) {
         JSObject status = new JSObject();
