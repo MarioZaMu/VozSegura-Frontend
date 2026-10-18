@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 import { routes } from '../../app/routes'
 import { Card } from '../../components/ui/Card'
+import { Logo } from '../../components/ui/Logo'
 import {
   chunkRange,
   directionsUrl,
@@ -39,6 +40,7 @@ function Header({ view, now }: { view: AlertView; now: number }) {
   const resolved = view.resolution !== null && !active
   return (
     <header className="flex flex-col gap-3 pt-2">
+      <Logo className="mb-1" />
       <span
         className={cx(
           'inline-flex items-center gap-2 self-start rounded-full px-3 py-1 text-caption font-semibold',

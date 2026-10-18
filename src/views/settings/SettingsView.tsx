@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { routes } from '../../app/routes'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
+import { Logo } from '../../components/ui/Logo'
 import { Switch } from '../../components/ui/Switch'
 import { updateSettings, useSettings } from '../../features/settings/settingsStore'
 import { isBackendConfigured } from '../../lib/config'
@@ -30,6 +31,7 @@ export function SettingsView() {
   return (
     <main className="mx-auto flex max-w-content flex-col gap-4 px-gutter pb-section animate-screen-in">
       <header className="flex flex-col gap-2 pt-2">
+        <Logo className="mb-2" />
         <h1 className="text-headline font-semibold">{firstRun ? 'Te damos la bienvenida' : 'Configuración'}</h1>
         <p className="text-body-sm text-text-secondary">
           {firstRun
