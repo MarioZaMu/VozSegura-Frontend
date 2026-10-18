@@ -64,6 +64,7 @@ public class AlertCaptureService extends Service {
     static final String EXTRA_API_BASE_URL = "apiBaseUrl";
     static final String EXTRA_API_TOKEN = "apiToken";
     static final String EXTRA_STARTED_AT = "startedAt";
+    static final String EXTRA_DEVICE_ID = "deviceId";
     /** Longest wait for pending uploads after the recording stopped. */
     private static final long DRAIN_TIMEOUT_MS = 4 * 60_000;
 
@@ -116,7 +117,7 @@ public class AlertCaptureService extends Service {
         String apiToken = intent.getStringExtra(EXTRA_API_TOKEN);
         uploader = apiBaseUrl == null || apiBaseUrl.isEmpty() || apiToken == null
                 ? null
-                : new AlertUploader(apiBaseUrl, apiToken, alertId,
+                : new AlertUploader(apiBaseUrl, apiToken, alertId, intent.getStringExtra(EXTRA_DEVICE_ID),
                         intent.getLongExtra(EXTRA_STARTED_AT, System.currentTimeMillis()), this::emitDelivery);
 
         boolean canRecord = hasPermission(Manifest.permission.RECORD_AUDIO);

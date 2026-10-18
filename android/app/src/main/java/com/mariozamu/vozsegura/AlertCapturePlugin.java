@@ -53,6 +53,7 @@ public class AlertCapturePlugin extends Plugin {
                 .putExtra(AlertCaptureService.EXTRA_MAX_DURATION_SECONDS, call.getInt("maxDurationSeconds", 300))
                 .putExtra(AlertCaptureService.EXTRA_API_BASE_URL, call.getString("apiBaseUrl", ""))
                 .putExtra(AlertCaptureService.EXTRA_API_TOKEN, call.getString("apiToken"))
+                .putExtra(AlertCaptureService.EXTRA_DEVICE_ID, call.getString("deviceId"))
                 .putExtra(AlertCaptureService.EXTRA_STARTED_AT, call.getData().optLong("startedAt", System.currentTimeMillis()));
         try {
             ContextCompat.startForegroundService(getContext(), intent);

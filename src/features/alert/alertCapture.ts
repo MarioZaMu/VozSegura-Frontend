@@ -46,6 +46,8 @@ export type CaptureOptions = {
   /** Backend to send the alert to (native app only; the web capture is wrapped in JS). */
   apiBaseUrl?: string
   apiToken?: string
+  /** Picks the contacts the backend notifies (see lib/deviceId.ts). */
+  deviceId?: string
   startedAt?: number
 }
 

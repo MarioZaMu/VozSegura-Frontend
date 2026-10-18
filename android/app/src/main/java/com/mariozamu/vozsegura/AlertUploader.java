@@ -38,6 +38,8 @@ class AlertUploader {
     private final String baseUrl;
     private final String token;
     private final String alertId;
+    /** Chooses the contacts the alert goes to; null falls back to the backend default. */
+    private final String deviceId;
     private final long startedAt;
     private final Reporter reporter;
     // One queue for the alert, audio and stop (ordered), another one so positions are never
@@ -46,10 +48,11 @@ class AlertUploader {
     private final ExecutorService locationQueue = Executors.newSingleThreadExecutor();
     private volatile boolean alertSent;
 
-    AlertUploader(String baseUrl, String token, String alertId, long startedAt, Reporter reporter) {
+    AlertUploader(String baseUrl, String token, String alertId, String deviceId, long startedAt, Reporter reporter) {
         this.baseUrl = baseUrl.replaceAll("/+$", "");
         this.token = token;
         this.alertId = alertId;
+        this.deviceId = deviceId;
         this.startedAt = startedAt;
         this.reporter = reporter;
     }
@@ -121,6 +124,7 @@ class AlertUploader {
                     .put("alertId", alertId)
                     .put("startedAt", startedAt)
                     .put("captureKind", "native");
+            if (deviceId != null) body.put("deviceId", deviceId);
             alertSent = withRetry(() -> postJson("/api/alerts", body));
         } catch (JSONException e) {
             alertSent = false;

@@ -1,4 +1,5 @@
 import { config } from '../../lib/config'
+import { getDeviceId } from '../../lib/deviceId'
 import type { LocationFix, StopReason } from './alertCapture'
 
 // Client for the backend write endpoints (same contract the Android service uses in Java).
@@ -42,7 +43,7 @@ const jsonInit = (body: unknown): RequestInit => ({
 })
 
 export function postAlert(alertId: string, startedAt: number, captureKind: string): Promise<void> {
-  return sendWithRetry('/api/alerts', jsonInit({ alertId, startedAt, captureKind }))
+  return sendWithRetry('/api/alerts', jsonInit({ alertId, deviceId: getDeviceId(), startedAt, captureKind }))
 }
 
 /** Positions are not retried: the next one (seconds later) replaces a lost one. */
