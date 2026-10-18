@@ -1,4 +1,6 @@
-import { useEffect, type ReactNode } from 'react'
+import { useCallback, useEffect, type ReactNode } from 'react'
+import { Navigate, useNavigate } from 'react-router'
+import { routes } from '../../app/routes'
 import { Card } from '../../components/ui/Card'
 import { SegmentedControl } from '../../components/ui/SegmentedControl'
 import { Switch } from '../../components/ui/Switch'
@@ -7,9 +9,9 @@ import { WatchScreen } from '../../components/watch/WatchScreen'
 import { watchShapeLabels, type WatchShape } from '../../components/watch/watchShape'
 import { AlertDiagnostics } from '../../features/alert/AlertDiagnostics'
 import { activateAlert, useAlertSession } from '../../features/alert/alertSessionStore'
-import { ensureNativeCapturePermissions } from '../../features/alert/nativeCapture'
 import { GestureDiagnostics } from '../../features/gesture/GestureDiagnostics'
 import { MobileDebugPanel } from '../../features/gesture/MobileDebugPanel'
+import { useLongPress } from '../../features/gesture/useLongPress'
 import { usePanicGesture } from '../../features/gesture/usePanicGesture'
 import { updateSettings, useSettings } from '../../features/settings/settingsStore'
 import { useWatchDisplayMode } from '../../features/watch/useWatchDisplayMode'
@@ -27,6 +29,9 @@ const shapeOptions = (Object.keys(watchShapeLabels) as WatchShape[]).map((value)
 
 const WATCH_THEME_COLOR = '#000000'
 
+/** Hidden way back to Settings: a press this long is never a tap, so it cannot trigger an alert. */
+const SETTINGS_PRESS_MS = 2000
+
 // Paints the phone's status bar black while the full-screen watch is shown.
 function useThemeColor(color: string, enabled: boolean) {
   useEffect(() => {
@@ -40,17 +45,22 @@ function useThemeColor(color: string, enabled: boolean) {
   }, [color, enabled])
 }
 
-// The Android app asks for microphone and location when it opens, never at the moment of
-// the alert (a permission dialog then would give the gesture away). Phase 7 moves this to
-// the settings onboarding.
-function useCaptureSetup() {
-  useEffect(() => {
-    if (isNativeApp()) ensureNativeCapturePermissions().catch(() => {})
-  }, [])
+type SurfaceHandlers = ReturnType<typeof usePanicGesture>['handlers']
+
+/** Double tap (alert) and long press (settings) on the same touch layer. */
+function useWatchGestures(panic: SurfaceHandlers, onLongPress: () => void): SurfaceHandlers {
+  const longPress = useLongPress(onLongPress, SETTINGS_PRESS_MS)
+  return {
+    ...panic,
+    onPointerDown: (event) => (panic.onPointerDown(event), longPress.onPointerDown(event)),
+    onPointerMove: (event) => (panic.onPointerMove(event), longPress.onPointerMove(event)),
+    onPointerUp: (event) => (panic.onPointerUp(event), longPress.onPointerUp()),
+    onPointerCancel: (event) => (panic.onPointerCancel(event), longPress.onPointerCancel()),
+  }
 }
 
 type TouchSurfaceProps = {
-  handlers: ReturnType<typeof usePanicGesture>['handlers']
+  handlers: SurfaceHandlers
   blinkKey: number
   children: ReactNode
 }
@@ -68,7 +78,8 @@ function TouchSurface({ handlers, blinkKey, children }: TouchSurfaceProps) {
 }
 
 export function WatchView() {
-  const { watchShape, demoMode } = useSettings()
+  const { watchShape, demoMode, onboarded } = useSettings()
+  const navigate = useNavigate()
   const displayMode = useWatchDisplayMode()
   const now = useNow()
   const isFullscreen = displayMode === 'fullscreen'
@@ -77,13 +88,17 @@ export function WatchView() {
   useKeepAwake(isFullscreen)
 
   const alertSession = useAlertSession()
-  useCaptureSetup()
 
   // The face never changes when the alert starts: only the discreet confirmation is felt.
-  const { handlers, events, blinkKey } = usePanicGesture({
+  const { handlers: panicHandlers, events, blinkKey } = usePanicGesture({
     onActivate: activateAlert,
     alwaysBlink: !isFullscreen,
   })
+  const openSettings = useCallback(() => navigate(routes.settings), [navigate])
+  const handlers = useWatchGestures(panicHandlers, openSettings)
+
+  // First launch of the app: contacts and permissions come before the watch.
+  if (isNativeApp() && !onboarded) return <Navigate to={routes.settings} replace />
 
   if (isFullscreen) {
     return (

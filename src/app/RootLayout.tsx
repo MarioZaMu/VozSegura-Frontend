@@ -1,13 +1,16 @@
 import { NavLink, Outlet, useMatch } from 'react-router'
 import { useWatchDisplayMode } from '../features/watch/useWatchDisplayMode'
+import { isNativeApp } from '../lib/platform'
 import { buildContactAlertPath, routes } from './routes'
 
-const navItems = [
+const allNavItems = [
   { to: routes.watch, label: 'Reloj' },
   { to: routes.settings, label: 'Configuración' },
   { to: buildContactAlertPath('demo'), label: 'Contacto' },
   { to: routes.designSystem, label: 'Diseño' },
 ]
+// The demo contact page and the style guide are for the PC presentation only.
+const navItems = isNativeApp() ? allNavItems.slice(0, 2) : allNavItems
 
 // Navigation between the views. Hidden on the full-screen watch: there, nothing but the
 // watch face may be visible.
