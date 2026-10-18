@@ -292,7 +292,7 @@ launch until "Ir al reloj" is pressed once).
 4. ✅ Double-tap detection (accidental-tap prevention) + discreet vibration
 5. ✅ Android app with Capacitor: immersive watch, native haptics, keep-awake, APK scripts
 6. ✅ Active state: real audio + location (web + native foreground service), without revealing anything
-7. 🧪 Settings: contacts by Telegram invite, message, permissions up front, gesture practice, history (pending phone test)
+7. ✅ Settings: contacts by Telegram invite, message, permissions up front, gesture practice, history
 8. ✅ Backend: alert endpoint, storage, AI transcription/summary, Telegram, Vercel deploy
 9. Contact view + link delivery; "generando resumen…" state
 10. Silent confirmation and cancel / false alarm
