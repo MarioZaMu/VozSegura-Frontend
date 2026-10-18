@@ -19,7 +19,11 @@ type AlertCapturePlugin = {
 
 const NativeAlertCapture = registerPlugin<AlertCapturePlugin>('AlertCapture')
 
-/** Asks for microphone and location once; phase 7 moves this to the settings onboarding. */
+export function checkNativeCapturePermissions(): Promise<CapturePermissions> {
+  return NativeAlertCapture.checkPermissions()
+}
+
+/** Asks for microphone and location (from Settings, never at the moment of the alert). */
 export async function ensureNativeCapturePermissions(): Promise<CapturePermissions> {
   const current = await NativeAlertCapture.checkPermissions()
   if (current.microphone === 'granted' && current.location === 'granted') return current
