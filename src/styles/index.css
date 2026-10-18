@@ -82,7 +82,7 @@
   --spacing-watch-ring: 17cqi;
   --spacing-watch-inset: 14cqi;
   /* Full-screen watch on the phone: the largest circle that fits the viewport */
-  --spacing-watch-fullscreen: min(100vw, 100dvh);
+  --spacing-watch-fullscreen: min(calc(100vw - 1.5rem), calc(100dvh - 1.5rem));
 
   /* Radius */
   --radius-*: initial;
