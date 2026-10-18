@@ -4,11 +4,13 @@ Botón de pánico silencioso para smartwatch, caso de estudio de **Diseño de In
 Software**. Un doble toque discreto en la carátula del reloj activa la grabación de audio
 y envía la ubicación a contactos de confianza, sin nada visible en pantalla y sin sonido.
 
-Esta es la app web progresiva (PWA) con tres vistas:
+Es una sola app React que se usa de tres formas: en el PC (navegador, con un mockup del
+reloj), en el celular como **app Android** hecha con Capacitor (el celular hace de reloj) y,
+para la persona de confianza, como página web. Tiene tres vistas:
 
 | Vista             | Ruta               | Para quién                                   |
 | ----------------- | ------------------ | -------------------------------------------- |
-| **Reloj**         | `/`                | La persona en riesgo. En PC se ve un mockup de reloj; instalada en el celular, ocupa la pantalla completa como si fuera un reloj. |
+| **Reloj**         | `/`                | La persona en riesgo. En PC se ve un mockup de reloj; en la app Android ocupa la pantalla completa como si fuera un reloj. |
 | **Configuración** | `/configuracion`   | App compañera: contactos, mensaje, práctica del gesto, historial y modo demo. |
 | **Contacto**      | `/alerta/:alertId` | Lo que recibe la persona de confianza: mapa, hora, estado y resumen de la IA. |
 
@@ -17,7 +19,7 @@ audio con IA) está en [VozSegura-backend](https://github.com/MarioZaMu/VozSegur
 
 ## Stack
 
-React 19 · Vite 8 · TypeScript · Tailwind CSS v4 · React Router · oxlint · Vercel
+React 19 · Vite 8 · TypeScript · Tailwind CSS v4 · React Router · Capacitor 8 (Android) · Vitest · oxlint · Vercel
 
 ## Cómo correrlo
 
@@ -34,11 +36,27 @@ Otros comandos:
 ```bash
 npm run build     # verificación de tipos + build de producción en dist/
 npm run lint      # análisis estático con oxlint
+npm test          # pruebas unitarias con Vitest
 npm run preview   # sirve dist/ localmente
 ```
 
 > En el celular, el micrófono y la ubicación solo funcionan sobre HTTPS. Para probar en
 > el teléfono usa la URL de Vercel.
+
+## App Android (Capacitor)
+
+Requisitos: Android Studio instalado (trae el JDK y el SDK de Android).
+
+```bash
+npm run android:sync     # build web + copia a android/
+npm run android:build    # genera android/app/build/outputs/apk/debug/app-debug.apk
+npm run android:install  # instala el APK en el celular conectado por USB
+```
+
+Para instalar por USB, activa en el celular *Opciones de desarrollador → Depuración USB*.
+También puedes copiar el APK al celular e instalarlo a mano (permite "instalar apps de
+orígenes desconocidos"). Para ver la consola de la app, conecta el celular y abre
+`chrome://inspect` en el Chrome del PC.
 
 ## Cómo desplegarlo (Vercel)
 
