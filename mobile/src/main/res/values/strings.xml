@@ -90,6 +90,7 @@
     <string name="gesture_title">Probar gesto</string>
     <string name="gesture_subtitle">Practica sin enviar nada. Toca dos veces seguidas dentro del círculo, como en el reloj.</string>
     <string name="gesture_pad_idle">Toca dos veces</string>
+    <string name="gesture_pad_description">Área de práctica. Con el lector de pantalla activo el gesto no se puede practicar aquí: el lector usa el doble toque para activar elementos.</string>
     <string name="gesture_pad_armed">Mantén presionado para cancelar</string>
     <string name="gesture_detected_title">¡Doble toque detectado!</string>
     <string name="gesture_detected_body">En el reloj sentirías una vibración. Para cancelar, mantén presionado 2 segundos antes de que termine el círculo.</string>

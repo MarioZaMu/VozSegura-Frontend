@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -219,7 +220,9 @@ private fun ContactRow(contact: TrustedContact, onRemove: () -> Unit) {
                     style = MaterialTheme.typography.titleMedium,
                 )
             }
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier
+                .weight(1f)
+                .semantics(mergeDescendants = true) {}) {
                 Text(
                     contact.name,
                     style = MaterialTheme.typography.titleMedium,

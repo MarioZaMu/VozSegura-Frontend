@@ -42,6 +42,8 @@ Para enviar alertas reales, agregar a `local.properties` (no se sube a git):
 ```properties
 vozsegura.backendUrl=https://tu-proyecto.vercel.app
 vozsegura.alertApiToken=el-mismo-ALERT_API_TOKEN-del-backend
+# Usuario del bot sin @, para el botón "Invitar por Telegram" de la app del celular
+vozsegura.botUsername=TuBot_bot
 ```
 
 Para probar con el servidor local del backend (`npm run serve`) desde el emulador, usar
@@ -50,6 +52,29 @@ Para probar con el servidor local del backend (`npm run serve`) desde el emulado
 ```bash
 adb shell pm grant com.vozsegura.app android.permission.ACCESS_LOCAL_NETWORK
 ```
+
+### Celular y reloj
+
+- El celular es la fuente de verdad de contactos, mensaje y modo demo; cada cambio se publica como
+  DataItem y el reloj guarda una copia, así la alerta nunca depende de que el celular esté cerca.
+- El reloj avisa al celular cada cambio de estado de una alerta (mensaje Data Layer) para el historial.
+- La sincronización requiere emparejar el reloj con el celular (app Wear OS). Sin emparejar, el
+  reloj alerta a los `DEFAULT_CHAT_IDS` del backend y el celular funciona por su cuenta.
+- **Probar gesto** usa el mismo detector (`shared/gesture`) y los mismos umbrales que el reloj.
+
+### Pruebas
+
+```bash
+./gradlew :wear:testDebugUnitTest   # detector del gesto y máquina de estados
+```
+
+## Accesibilidad
+
+- Contraste WCAG AA verificado en la paleta; el color nunca es la única señal (los estados tienen texto).
+- Títulos marcados como encabezados, tarjetas leídas como una sola frase y resultados del gesto
+  anunciados (live region) para TalkBack.
+- Limitación conocida: con TalkBack activo, el lector usa el doble toque, por lo que el gesto oculto
+  no funciona en el reloj. Ver el documento del caso.
 
 ## Uso de IA
 

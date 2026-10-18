@@ -28,6 +28,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.vozsegura.mobile.R
@@ -54,6 +58,7 @@ fun GestureTestScreen(onBack: () -> Unit) {
     var successes by rememberSaveable { mutableIntStateOf(0) }
     val grace = remember { Animatable(0f) }
     val haptics = LocalHapticFeedback.current
+    val padDescription = stringResource(R.string.gesture_pad_description)
 
     LaunchedEffect(phase) {
         when (phase) {
@@ -99,6 +104,9 @@ fun GestureTestScreen(onBack: () -> Unit) {
                     },
                     modifier = Modifier
                         .size(216.dp)
+                        // With TalkBack on, the screen reader takes over taps, so the pad
+                        // explains the gesture instead of pretending to be a button.
+                        .semantics { contentDescription = padDescription }
                         .background(VsColors.Surface, CircleShape)
                         .border(1.dp, VsColors.Outline, CircleShape),
                 ) {
@@ -154,7 +162,13 @@ fun GestureTestScreen(onBack: () -> Unit) {
 
 @Composable
 private fun Feedback(title: Int, body: Int, color: Color) {
-    VsCard(modifier = Modifier.fillMaxWidth(), color = color.copy(alpha = 0.12f)) {
+    VsCard(
+        // Announced as soon as it changes, so the result is not conveyed only by color and motion.
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
+        color = color.copy(alpha = 0.12f),
+    ) {
         Text(stringResource(title), style = MaterialTheme.typography.titleMedium, color = color)
         Spacer(Modifier.height(VsSpacing.xxs))
         Text(stringResource(body), style = MaterialTheme.typography.bodyMedium)

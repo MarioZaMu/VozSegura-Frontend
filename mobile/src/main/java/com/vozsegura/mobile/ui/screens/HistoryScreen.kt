@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
 import com.vozsegura.mobile.R
 import com.vozsegura.mobile.data.HistoryEntry
 import com.vozsegura.mobile.ui.components.AlertStatusChip
@@ -80,7 +81,9 @@ fun HistoryScreen() {
 
 @Composable
 private fun HistoryRow(entry: HistoryEntry) {
-    VsCard(modifier = Modifier.fillMaxWidth()) {
+    VsCard(modifier = Modifier
+        .fillMaxWidth()
+        .semantics(mergeDescendants = true) {}) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,

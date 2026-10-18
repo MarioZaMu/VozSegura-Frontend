@@ -24,6 +24,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.vozsegura.mobile.R
 import com.vozsegura.mobile.ui.theme.VsColors
@@ -51,7 +53,7 @@ fun VsScreen(
         if (onBack != null) {
             VsIconButton(R.drawable.ic_back, stringResource(R.string.cd_back), onClick = onBack)
         }
-        Text(title, style = MaterialTheme.typography.headlineLarge)
+        Text(title, style = MaterialTheme.typography.headlineLarge, modifier = Modifier.semantics { heading() })
         if (subtitle != null) {
             Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = VsColors.TextSecondary)
         }
@@ -64,7 +66,9 @@ fun SectionTitle(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleMedium,
-        modifier = modifier.padding(top = VsSpacing.xs),
+        modifier = modifier
+            .padding(top = VsSpacing.xs)
+            .semantics { heading() },
     )
 }
 
@@ -72,7 +76,8 @@ fun SectionTitle(text: String, modifier: Modifier = Modifier) {
 @Composable
 fun NumberedStep(number: Int, text: String, modifier: Modifier = Modifier) {
     Row(
-        modifier = modifier,
+        // Read as one sentence ("1, Toca dos veces...") instead of two separate items.
+        modifier = modifier.semantics(mergeDescendants = true) {},
         horizontalArrangement = Arrangement.spacedBy(VsSpacing.sm),
         verticalAlignment = Alignment.Top,
     ) {
