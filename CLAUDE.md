@@ -190,22 +190,41 @@ movement ≤12 px, contact ≤60 px (bigger = palm). Rejections with a reason:
   runs when the app opens (never at the moment of the alert: a dialog then would give the
   gesture away; phase 7 moves it into onboarding).
 - `AlertDiagnostics.tsx`: PC-only panel (status, elapsed time, sources, last fix, chunks,
-  errors, "Detener"). **The watch face never changes when an alert starts.**
+  delivery, errors, "Detener"). **The watch face never changes when an alert starts.**
+
+Delivery to the backend (phase 8):
+
+- `alertApi.ts`: `postAlert`, `postLocation` (no retry), `postAudioChunk` (raw body),
+  `postStop(totalChunks)`; retries network errors/5xx with backoff, never 4xx.
+- `webDelivery.ts`: wraps the browser capture listener: alert first, a position every
+  10 s, chunks uploaded one by one in order, stop last. Reports `delivery` events.
+- The Android service does the same in Java (`AlertUploader.java`), because JS pauses with
+  the screen off. JS only passes `apiBaseUrl`, `apiToken` and `startedAt` in the start options.
+- **Demo mode never sends anything**; real alerts need `VITE_API_BASE_URL` and
+  `VITE_ALERT_API_TOKEN` (`isBackendConfigured()` in `lib/config.ts`). Local values live
+  in the git-ignored `.env.local`; the token is public once built (inside the bundle/APK).
 
 Android side (`android/app/src/main/java/com/mariozamu/vozsegura/`):
 
 - `AlertCapturePlugin.java`: `start/stop/getStatus` + Capacitor permission aliases
   `microphone` and `location`; service events reach JS as retained `captureEvent`s.
+- `AlertUploader.java`: two single-thread queues (alert → chunks → stop in order;
+  positions apart so they never wait behind audio), `HttpURLConnection`, ~2 min of retries
+  per item, **deletes each chunk file once uploaded**. The service stays in the foreground
+  ("draining") until the stop is sent (max 4 min), and sends the alert even with no
+  permissions at all.
 - `AlertCaptureService.java`: foreground service typed `microphone|location` (only the
   types whose permission is granted, Android 14 rule), partial wake lock, AAC 16 kHz mono
   32 kbps in `files/alerts/{alertId}/chunk-NNN.m4a` (one MediaRecorder per chunk), fused
   location every 10 s (`play-services-location`), self-stop at max duration (JS may be
   paused with the screen off). The mandatory notification is "Sincronizando…" on an
   `IMPORTANCE_MIN` channel; the app never asks for `POST_NOTIFICATIONS`, so on Android
-  13+ it is not shown. Upload of the chunks comes with the backend (phase 8).
+  13+ it is not shown.
 - Demo mode defaults to **off in the app** (no demo switch there until phase 7) and on in
   the browser.
-- Logs: `adb logcat -s AlertCapture`. Files:
+- `res/xml/network_security_config.xml`: HTTPS only, except `localhost`/`127.0.0.1` for a
+  local backend over USB (`adb reverse tcp:3100 tcp:3100`).
+- Logs: `adb logcat -s AlertCapture AlertUpload` (HyperOS floods logcat; read it soon). Files:
   `adb shell run-as com.mariozamu.vozsegura ls -l files/alerts/`.
 
 ## Settings store
@@ -241,7 +260,7 @@ off in the Android app) and `watchShape`.
 5. ✅ Android app with Capacitor: immersive watch, native haptics, keep-awake, APK scripts
 6. ✅ Active state: real audio + location (web + native foreground service), without revealing anything
 7. Settings: contacts, message, permissions up front, gesture practice, history
-8. Backend: alert endpoint, storage, AI transcription/summary, Telegram, Vercel deploy
+8. ✅ Backend: alert endpoint, storage, AI transcription/summary, Telegram, Vercel deploy
 9. Contact view + link delivery; "generando resumen…" state
 10. Silent confirmation and cancel / false alarm
 11. Installable PWA + final APK, demo polish, pixel perfect, usability tests (PC + Android)
