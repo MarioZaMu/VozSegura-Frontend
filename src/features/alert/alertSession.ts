@@ -78,9 +78,13 @@ export function alertSessionReducer(state: AlertSession, action: AlertAction): A
         startedAt: action.time,
       }
     case 'capture':
-      // Late events from a stopped capture are ignored.
-      if (state.status !== 'active') return state
-      return applyCaptureEvent(state, action.event, action.time)
+      if (state.status === 'active') return applyCaptureEvent(state, action.event, action.time)
+      // Stopping flushes the last partial audio chunk, which arrives after 'stopped'.
+      // Any other late event is ignored.
+      if (state.status === 'stopped' && action.event.type === 'chunk') {
+        return { ...state, chunks: [...state.chunks, action.event.chunk] }
+      }
+      return state
     case 'reset':
       return initialAlertSession
   }

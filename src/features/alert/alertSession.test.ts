@@ -65,6 +65,17 @@ describe('alertSessionReducer', () => {
     expect(state.locations).toHaveLength(0)
   })
 
+  it('keeps the last audio chunk flushed after stopping', () => {
+    let state = alertSessionReducer(active(), { type: 'capture', event: { type: 'stopped', reason: 'user' }, time: 2000 })
+    state = alertSessionReducer(state, {
+      type: 'capture',
+      event: { type: 'chunk', chunk: { index: 0, sizeBytes: 9000, durationMs: 2000, mimeType: 'audio/mp4' } },
+      time: 2010,
+    })
+    expect(state.status).toBe('stopped')
+    expect(state.chunks).toHaveLength(1)
+  })
+
   it('can start a new alert after the previous one stopped', () => {
     const stopped = alertSessionReducer(active(), { type: 'capture', event: { type: 'stopped', reason: 'user' }, time: 2000 })
     const next = alertSessionReducer(stopped, { type: 'activate', alertId: 'a2', kind: 'native', time: 3000 })
