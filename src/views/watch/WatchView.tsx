@@ -1,10 +1,13 @@
-import { useCallback, useEffect, type ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { Card } from '../../components/ui/Card'
 import { SegmentedControl } from '../../components/ui/SegmentedControl'
 import { Switch } from '../../components/ui/Switch'
 import { WatchDevice } from '../../components/watch/WatchDevice'
 import { WatchScreen } from '../../components/watch/WatchScreen'
 import { watchShapeLabels, type WatchShape } from '../../components/watch/watchShape'
+import { AlertDiagnostics } from '../../features/alert/AlertDiagnostics'
+import { activateAlert, useAlertSession } from '../../features/alert/alertSessionStore'
+import { ensureNativeCapturePermissions } from '../../features/alert/nativeCapture'
 import { GestureDiagnostics } from '../../features/gesture/GestureDiagnostics'
 import { MobileDebugPanel } from '../../features/gesture/MobileDebugPanel'
 import { usePanicGesture } from '../../features/gesture/usePanicGesture'
@@ -13,6 +16,7 @@ import { useWatchDisplayMode } from '../../features/watch/useWatchDisplayMode'
 import { WatchFace } from '../../features/watch-face/WatchFace'
 import { isDebugEnabled } from '../../lib/debug'
 import { canVibrate } from '../../lib/haptics'
+import { isNativeApp } from '../../lib/platform'
 import { useKeepAwake } from '../../lib/useKeepAwake'
 import { useNow } from '../../lib/useNow'
 
@@ -34,6 +38,15 @@ function useThemeColor(color: string, enabled: boolean) {
       meta.content = previous
     }
   }, [color, enabled])
+}
+
+// The Android app asks for microphone and location when it opens, never at the moment of
+// the alert (a permission dialog then would give the gesture away). Phase 7 moves this to
+// the settings onboarding.
+function useCaptureSetup() {
+  useEffect(() => {
+    if (isNativeApp()) ensureNativeCapturePermissions().catch(() => {})
+  }, [])
 }
 
 type TouchSurfaceProps = {
@@ -63,10 +76,12 @@ export function WatchView() {
   useThemeColor(WATCH_THEME_COLOR, isFullscreen)
   useKeepAwake(isFullscreen)
 
-  // Phase 5 starts recording and location here.
-  const handleActivate = useCallback(() => {}, [])
+  const alertSession = useAlertSession()
+  useCaptureSetup()
+
+  // The face never changes when the alert starts: only the discreet confirmation is felt.
   const { handlers, events, blinkKey } = usePanicGesture({
-    onActivate: handleActivate,
+    onActivate: activateAlert,
     alwaysBlink: !isFullscreen,
   })
 
@@ -114,6 +129,7 @@ export function WatchView() {
       </Card>
 
       <GestureDiagnostics events={events} hapticsAvailable={canVibrate()} />
+      <AlertDiagnostics session={alertSession} now={now} />
     </main>
   )
 }
