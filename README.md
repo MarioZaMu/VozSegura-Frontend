@@ -17,6 +17,24 @@ para la persona de confianza, como página web. Tiene tres vistas:
 El backend (funciones serverless que guardan la alerta, avisan por Telegram y resumen el
 audio con IA) está en [VozSegura-backend](https://github.com/MarioZaMu/VozSegura-backend).
 
+## Abrirla en línea
+
+No hay que instalar nada: abre el enlace en el PC o en el celular.
+
+| Qué | Enlace |
+| --- | ------ |
+| **App (Reloj)** | [voz-segura-frontend.vercel.app](https://voz-segura-frontend.vercel.app) |
+| Configuración | [voz-segura-frontend.vercel.app/configuracion](https://voz-segura-frontend.vercel.app/configuracion) |
+| Vista Contacto (demo simulada) | [voz-segura-frontend.vercel.app/alerta/demo](https://voz-segura-frontend.vercel.app/alerta/demo) |
+| Sistema de diseño | [voz-segura-frontend.vercel.app/sistema-diseno](https://voz-segura-frontend.vercel.app/sistema-diseno) |
+
+- **En el PC** se ve el mockup del reloj con la navegación entre vistas. Haz doble clic
+  rápido en la carátula para probar el gesto.
+- **En el celular** el reloj ocupa toda la pantalla; desde el menú del navegador se puede
+  "Agregar a la pantalla principal". Para grabar con la pantalla bloqueada usa la app
+  Android (ver [App Android](#app-android-capacitor)).
+- Activa el **modo demo** en Configuración para probar sin avisar a nadie.
+
 ## Stack
 
 React 19 · Vite 8 · TypeScript · Tailwind CSS v4 · React Router · Capacitor 8 (Android) · Vitest · oxlint · Vercel
