@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import type { WatchShape } from '../../components/watch/watchShape'
+import { isNativeApp } from '../../lib/platform'
 import { readJson, writeJson } from '../../lib/storage'
 
 export type AppSettings = {
@@ -11,7 +12,9 @@ export type AppSettings = {
 const STORAGE_KEY = 'voz-segura:settings:v1'
 
 const defaultSettings: AppSettings = {
-  demoMode: true,
+  // On by default in the browser (classroom demo). The Android app has no demo switch until
+  // the settings view (phase 7), so it uses the real microphone and location.
+  demoMode: !isNativeApp(),
   watchShape: 'round',
 }
 
