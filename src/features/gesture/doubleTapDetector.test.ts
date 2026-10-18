@@ -103,12 +103,40 @@ describe('DoubleTapDetector', () => {
     expect(types()).toEqual(['tap', 'tap'])
   })
 
-  it('cannot re-trigger with a triple tap (cooldown)', () => {
+  it('reports a quick third tap as a triple tap, then cools down', () => {
     tap(1000)
     tap(1250)
     tap(1500)
     tap(1750)
-    expect(types()).toEqual(['tap', 'double-tap', 'rejected:cooldown', 'rejected:cooldown'])
+    expect(types()).toEqual(['tap', 'double-tap', 'triple-tap', 'rejected:cooldown'])
+  })
+
+  it('cannot re-trigger the double tap with extra taps', () => {
+    tap(1000)
+    tap(1250)
+    tap(1500)
+    tap(1750)
+    tap(2000)
+    expect(types().filter((type) => type === 'double-tap')).toHaveLength(1)
+  })
+
+  it('ignores a slow or distant third tap', () => {
+    tap(1000)
+    tap(1250)
+    tap(1800) // gap 470 ms
+    expect(types()).toEqual(['tap', 'double-tap', 'rejected:cooldown'])
+    events = []
+    tap(5000)
+    tap(5250)
+    tap(5500, { x: 200 })
+    expect(types()).toEqual(['tap', 'double-tap', 'rejected:cooldown'])
+  })
+
+  it('does not count a long third press as a triple tap', () => {
+    tap(1000)
+    tap(1250)
+    tap(1500, {}, 600)
+    expect(types()).toEqual(['tap', 'double-tap', 'rejected:long-press'])
   })
 
   it('works again after the cooldown', () => {

@@ -18,6 +18,8 @@ export function describeGestureEvent(event: GestureEvent): string {
       return 'Primer toque'
     case 'double-tap':
       return 'Doble toque reconocido'
+    case 'triple-tap':
+      return 'Triple toque reconocido'
     case 'rejected':
       return rejectionLabels[event.reason]
   }

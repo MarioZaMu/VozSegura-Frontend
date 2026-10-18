@@ -1,4 +1,6 @@
 // Double-tap detector for the panic gesture. Framework-free so it can be unit tested.
+// A third quick tap right after a double tap is reported as 'triple-tap' (stops the alert);
+// the double tap is always reported first, so activation never waits for a possible third.
 //
 // The gesture must be invisible but infallible: easy to do on purpose, very hard to do by
 // accident (pocket, bag, palm, scrolling). Every rejected touch reports its reason, which
@@ -19,7 +21,10 @@ export type DoubleTapOptions = {
   maxContactSizePx: number
   /** Taps are ignored for this long after the screen is shown (pocket wake-ups). */
   armDelayMs: number
-  /** After a double tap, ignore taps for this long so a triple tap cannot re-trigger. */
+  /**
+   * After a double tap, ignore taps for this long so a triple tap cannot re-trigger. Only
+   * one quick third tap (same gap/distance rules) gets through, as 'triple-tap'.
+   */
   cooldownMs: number
 }
 
@@ -47,6 +52,7 @@ export type TapRejection =
 export type GestureEvent =
   | { type: 'tap'; time: number }
   | { type: 'double-tap'; time: number }
+  | { type: 'triple-tap'; time: number }
   | { type: 'rejected'; reason: TapRejection; time: number }
 
 export type PointerSample = {
@@ -59,7 +65,7 @@ export type PointerSample = {
   height?: number
 }
 
-type ActivePointer = { down: PointerSample; moved: boolean; ignored: boolean }
+type ActivePointer = { down: PointerSample; moved: boolean; ignored: boolean; third?: boolean }
 type CompletedTap = { x: number; y: number; upTime: number }
 
 function distance(a: { x: number; y: number }, b: { x: number; y: number }): number {
@@ -71,6 +77,8 @@ export class DoubleTapDetector {
   private readonly onEvent: (event: GestureEvent) => void
   private readonly active = new Map<number, ActivePointer>()
   private pendingTap: CompletedTap | null = null
+  /** Second tap of the last double tap, while a third one may still follow. */
+  private lastDoubleTap: CompletedTap | null = null
   private armedAt = Number.NEGATIVE_INFINITY
   private cooldownUntil = Number.NEGATIVE_INFINITY
 
@@ -88,6 +96,7 @@ export class DoubleTapDetector {
   reset(): void {
     this.active.clear()
     this.pendingTap = null
+    this.lastDoubleTap = null
   }
 
   pointerDown(sample: PointerSample): void {
@@ -97,7 +106,21 @@ export class DoubleTapDetector {
     }
 
     if (sample.time < this.armedAt) return reject('not-armed')
-    if (sample.time < this.cooldownUntil) return reject('cooldown')
+    if (sample.time < this.cooldownUntil) {
+      const second = this.lastDoubleTap
+      this.lastDoubleTap = null
+      const gap = second ? sample.time - second.upTime : Number.POSITIVE_INFINITY
+      const isThird =
+        second !== null &&
+        this.active.size === 0 &&
+        gap >= this.options.minGapMs &&
+        gap <= this.options.maxGapMs &&
+        distance(second, sample) <= this.options.maxDistancePx &&
+        Math.max(sample.width ?? 0, sample.height ?? 0) <= this.options.maxContactSizePx
+      if (!isThird) return reject('cooldown')
+      this.active.set(sample.pointerId, { down: sample, moved: false, ignored: false, third: true })
+      return
+    }
 
     if (this.active.size > 0) {
       // A second finger invalidates everything in progress.
@@ -134,6 +157,12 @@ export class DoubleTapDetector {
     if (pointer.moved) return reject('moved')
     if (sample.time - pointer.down.time > this.options.maxTapDurationMs) return reject('long-press')
 
+    if (pointer.third) {
+      this.cooldownUntil = sample.time + this.options.cooldownMs
+      this.onEvent({ type: 'triple-tap', time: sample.time })
+      return
+    }
+
     const tap: CompletedTap = { x: pointer.down.x, y: pointer.down.y, upTime: sample.time }
     const first = this.pendingTap
 
@@ -149,6 +178,7 @@ export class DoubleTapDetector {
           return
         }
         this.pendingTap = null
+        this.lastDoubleTap = tap
         this.cooldownUntil = sample.time + this.options.cooldownMs
         this.onEvent({ type: 'double-tap', time: sample.time })
         return
