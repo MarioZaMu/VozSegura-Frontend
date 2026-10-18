@@ -32,7 +32,7 @@ export function RootLayout() {
             to={item.to}
             end
             className={({ isActive }) =>
-              `shrink-0 rounded-full px-3 py-2 text-body-sm sm:px-4 ${isActive ? 'bg-primary text-text-primary' : 'bg-surface text-text-secondary'}`
+              `shrink-0 rounded-full px-3 py-2 text-body-sm sm:px-4 ${isActive ? 'bg-primary text-on-accent' : 'bg-surface text-text-secondary'}`
             }
           >
             {item.label}

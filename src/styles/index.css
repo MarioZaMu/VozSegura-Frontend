@@ -24,6 +24,8 @@
   --color-gradient-to: #8b5cf6;
   --color-text-primary: #ffffff;
   --color-text-secondary: #9a93a8;
+  /* Text on the gradient, primary and danger fills: white in both themes */
+  --color-on-accent: #ffffff;
   --color-danger: #e53935;
   --color-success: #4ade80;
   --color-warning: #fbbf24;
@@ -139,13 +141,35 @@
   }
 }
 
-/* Contact view map: OpenStreetMap tiles turned dark (light tiles would glare at night).
-   Unlayered on purpose: Leaflet's own CSS is unlayered and would beat a Tailwind utility. */
+/*
+ * Light theme (Settings, Contact, design system): only the brand surface and text tokens
+ * change; the watch face and the device mockup keep their own dark tokens. Set by
+ * lib/theme.ts as <html data-theme="light">. Unlayered so it beats the @theme defaults.
+ */
+:root[data-theme='light'] {
+  color-scheme: light;
+  --color-background: #f6f3fa;
+  --color-surface: #ffffff;
+  --color-surface-raised: #ede7f4;
+  /* Darker magenta and status colors keep 4.5:1 contrast on white */
+  --color-primary: #a21caf;
+  --color-text-primary: #1a1225;
+  --color-text-secondary: #5c5569;
+  --color-success: #15803d;
+  --color-warning: #b45309;
+  --color-danger: #d32f2f;
+  --shadow-card: 0 0.25rem 1rem rgb(26 18 37 / 0.08);
+  --shadow-glow: 0 0.5rem 1.25rem rgb(162 28 175 / 0.25);
+}
+
+/* Contact view map: OpenStreetMap tiles turned dark in the dark theme (light tiles would
+   glare at night). Unlayered on purpose: Leaflet's own CSS is unlayered and would beat a
+   Tailwind utility. */
 .map-dark.leaflet-container {
   background-color: var(--color-surface-raised);
 }
 
-.map-dark .leaflet-tile-pane {
+:root:not([data-theme='light']) .map-dark .leaflet-tile-pane {
   filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9);
 }
 

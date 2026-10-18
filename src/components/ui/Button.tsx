@@ -12,9 +12,9 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: 'bg-brand-gradient text-text-primary shadow-glow',
+  primary: 'bg-brand-gradient text-on-accent shadow-glow',
   secondary: 'bg-surface-raised text-text-primary',
-  danger: 'bg-danger text-text-primary',
+  danger: 'bg-danger text-on-accent',
   ghost: 'bg-transparent text-text-secondary hover:text-text-primary',
 }
 

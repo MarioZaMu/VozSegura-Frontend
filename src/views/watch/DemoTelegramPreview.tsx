@@ -93,7 +93,7 @@ export function DemoTelegramPreview({ session, now }: { session: AlertSession; n
       </ol>
       <Link
         to={demoPath}
-        className="inline-flex min-h-touch items-center justify-center gap-2 rounded-full bg-brand-gradient px-6 text-body-sm font-semibold text-text-primary shadow-glow"
+        className="inline-flex min-h-touch items-center justify-center gap-2 rounded-full bg-brand-gradient px-6 text-body-sm font-semibold text-on-accent shadow-glow"
       >
         <ExternalLink size={18} /> Ver lo que recibe tu contacto
       </Link>

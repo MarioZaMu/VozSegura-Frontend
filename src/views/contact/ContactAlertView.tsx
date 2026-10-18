@@ -44,7 +44,7 @@ function Header({ view, now }: { view: AlertView; now: number }) {
       <span
         className={cx(
           'inline-flex items-center gap-2 self-start rounded-full px-3 py-1 text-caption font-semibold',
-          active ? 'bg-danger text-text-primary' : resolved ? 'bg-success/15 text-success' : 'bg-surface-raised text-text-secondary',
+          active ? 'bg-danger text-on-accent' : resolved ? 'bg-success/15 text-success' : 'bg-surface-raised text-text-secondary',
         )}
       >
         <span className={cx('size-2 rounded-full bg-current', active && 'animate-live-pulse')} />
@@ -111,11 +111,11 @@ function LocationCard({ view, now }: { view: AlertView; now: number }) {
       )}
       <div className="flex flex-wrap gap-3">
         {last && (
-          <a href={directionsUrl(last)} target="_blank" rel="noreferrer" className={cx(linkButton, 'bg-brand-gradient text-text-primary shadow-glow')}>
+          <a href={directionsUrl(last)} target="_blank" rel="noreferrer" className={cx(linkButton, 'bg-brand-gradient text-on-accent shadow-glow')}>
             <Navigation size={18} /> Cómo llegar
           </a>
         )}
-        <a href={`tel:${EMERGENCY_NUMBER}`} className={cx(linkButton, 'bg-danger text-text-primary')}>
+        <a href={`tel:${EMERGENCY_NUMBER}`} className={cx(linkButton, 'bg-danger text-on-accent')}>
           <Phone size={18} /> Llamar al {EMERGENCY_NUMBER}
         </a>
       </div>
