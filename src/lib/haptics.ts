@@ -1,15 +1,23 @@
-import { Haptics } from '@capacitor/haptics'
+import { registerPlugin } from '@capacitor/core'
 import { isNativeApp } from './platform'
 
 // Discreet haptic feedback.
-// - Android app: native vibrator through @capacitor/haptics (does not depend on Chrome).
+// - Android app: local native plugin `DiscreetHaptics` (android/…/DiscreetHapticsPlugin.java)
+//   that vibrates with the ALARM usage. @capacitor/haptics and the browser vibrate as
+//   "touch feedback", which Android silently drops (IGNORED_FOR_SETTINGS) when touch
+//   vibration is off in the phone settings — exactly what happened on a Xiaomi.
 // - Browser: Vibration API. Exists on Android Chrome but not on iPhone (Safari), so callers
 //   get `false` back and must use the visual fallback instead.
 
+type DiscreetHapticsPlugin = {
+  vibrate(options: { pattern: number[] }): Promise<{ vibrated: boolean }>
+}
+
+const DiscreetHaptics = registerPlugin<DiscreetHapticsPlugin>('DiscreetHaptics')
+
 /**
  * Patterns in ms (vibrate, pause, vibrate…). Short and soft: felt, not heard. Pulses are at
- * least ~50 ms because cheap vibration motors need that long just to spin up (35 ms was
- * accepted by the browser but not felt on a real phone).
+ * least ~50 ms because cheap vibration motors need that long just to spin up.
  */
 export const hapticPatterns = {
   /** Gesture recognized, alert activated. */
@@ -27,19 +35,12 @@ export function canVibrate(): boolean {
   return typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function'
 }
 
-/** Plays a vibrate/pause pattern with the native plugin, which only takes one duration. */
-function vibrateNative(pattern: readonly number[]): void {
-  let delay = 0
-  pattern.forEach((duration, index) => {
-    if (index % 2 === 0) window.setTimeout(() => void Haptics.vibrate({ duration }), delay)
-    delay += duration
-  })
-}
-
-/** Returns true if the device accepted the vibration. */
+/** Returns true if the device accepted the vibration (optimistic in the app: async call). */
 export function vibrate(pattern: readonly number[]): boolean {
   if (isNativeApp()) {
-    vibrateNative(pattern)
+    DiscreetHaptics.vibrate({ pattern: [...pattern] }).catch(() => {
+      // A failed confirmation must never break the alert flow.
+    })
     return true
   }
   if (!canVibrate()) return false
