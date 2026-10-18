@@ -7,15 +7,18 @@ export type AppSettings = {
   /** Simulates microphone, location, AI and sending so the demo never depends on the room. */
   demoMode: boolean
   watchShape: WatchShape
+  /** The Android app opens Settings until the user finishes it once ("Ir al reloj"). */
+  onboarded: boolean
 }
 
 const STORAGE_KEY = 'voz-segura:settings:v1'
 
 const defaultSettings: AppSettings = {
-  // On by default in the browser (classroom demo). The Android app has no demo switch until
-  // the settings view (phase 7), so it uses the real microphone and location.
+  // On by default in the browser (classroom demo); the Android app uses the real microphone
+  // and location unless the switch in Settings turns demo mode on.
   demoMode: !isNativeApp(),
   watchShape: 'round',
+  onboarded: false,
 }
 
 let settings: AppSettings = { ...defaultSettings, ...readJson<Partial<AppSettings>>(STORAGE_KEY, {}) }
