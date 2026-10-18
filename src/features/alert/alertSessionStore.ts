@@ -7,7 +7,7 @@ import { defaultCaptureOptions, type AlertCapture, type CaptureEvent, type StopR
 import { alertSessionReducer, initialAlertSession, type AlertAction, type AlertSession } from './alertSession'
 import { recordAlert } from './alertHistory'
 import { createDemoCapture } from './demoCapture'
-import { createNativeCapture, runningNativeAlertId, stopNativeCapture } from './nativeCapture'
+import { createNativeCapture, flushPendingNativeAudio, runningNativeAlertId, stopNativeCapture } from './nativeCapture'
 import { createWebCapture } from './webCapture'
 import { withWebDelivery } from './webDelivery'
 
@@ -97,6 +97,7 @@ if (isNativeApp()) {
     },
     () => {},
   )
+  if (isBackendConfigured()) void flushPendingNativeAudio(config.apiBaseUrl, config.alertApiToken).catch(() => {})
 }
 
 /** Alert still recording that this JS session did not start (see above). */

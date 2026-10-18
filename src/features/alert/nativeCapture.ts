@@ -12,6 +12,7 @@ type AlertCapturePlugin = {
   start(options: CaptureOptions): Promise<void>
   stop(): Promise<void>
   getStatus(): Promise<{ running: boolean; alertId: string | null; chunkCount: number }>
+  flushPending(options: { apiBaseUrl: string; apiToken: string }): Promise<{ pending: number }>
   checkPermissions(): Promise<CapturePermissions>
   requestPermissions(options?: { permissions: (keyof CapturePermissions)[] }): Promise<CapturePermissions>
   addListener(eventName: 'captureEvent', listener: (event: CaptureEvent) => void): Promise<PluginListenerHandle>
@@ -19,11 +20,16 @@ type AlertCapturePlugin = {
 
 const NativeAlertCapture = registerPlugin<AlertCapturePlugin>('AlertCapture')
 
-/** True when the capture service is still recording (e.g. the app was reopened mid-alert). */
-/** The alert the Android service is recording right now, if any. */
+/** The alert the Android service is recording right now (e.g. the app was reopened mid-alert). */
 export async function runningNativeAlertId(): Promise<string | null> {
   const status = await NativeAlertCapture.getStatus()
   return status.running ? status.alertId : null
+}
+
+/** Audio from earlier alerts that never reached the server (no signal, phone off) is sent
+ *  now, in the background, followed by that alert's stop. */
+export function flushPendingNativeAudio(apiBaseUrl: string, apiToken: string): Promise<{ pending: number }> {
+  return NativeAlertCapture.flushPending({ apiBaseUrl, apiToken })
 }
 
 export function stopNativeCapture(): Promise<void> {
