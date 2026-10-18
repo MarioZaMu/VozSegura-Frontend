@@ -13,7 +13,7 @@ Backend lives in a separate repo: `../VozSegura-backend` (github.com/MarioZaMu/V
 - **Language:** all code (identifiers, files, comments, commits) in English. Everything
   the user sees in Spanish. Public URL paths are user-visible, so they are in Spanish.
 - Work in phases; explain before, report after (how to test on PC and phone) and wait
-  for approval. Each phase ends with `npm run build` + `npm run lint` clean and several
+  for approval. Each phase ends with `npm run build` + `npm run lint` + `npm test` clean and several
   small commits. Never push unless asked.
 - Commits authored as MarioZaMu only, no `Co-Authored-By` trailers.
 - Keep this file updated with every decision.
@@ -25,6 +25,7 @@ npm install        # install dependencies
 npm run dev        # dev server at http://localhost:5173
 npm run build      # type-check (tsc -b) + production build into dist/
 npm run lint       # oxlint
+npm test           # Vitest unit tests (npm run test:watch while developing)
 npm run preview    # serve dist/ locally
 ```
 
@@ -118,6 +119,27 @@ screen on the phone), `watchShape.ts` (round | square).
 - **Idle face** (`WatchFace`): time (24 h), Spanish date, temperature, steps ring and heart
   rate. Data is simulated and deterministic per minute (`simulatedWatchData.ts`).
 
+## Panic gesture (double tap)
+
+`features/gesture/doubleTapDetector.ts` is framework-free and unit tested
+(`doubleTapDetector.test.ts`). Defaults: second tap ≤350 ms after the first is released
+and ≥40 ms (faster = bounce or synthetic), each tap ≤300 ms, taps ≤40 px apart, finger
+movement ≤12 px, contact ≤60 px (bigger = palm). Rejections with a reason:
+`not-armed` (first 800 ms after the screen is shown — pocket wake-ups), `cooldown`
+(2 s after a double tap, so a triple tap cannot re-trigger), `multi-touch`, `palm`,
+`moved`, `long-press`, `too-fast`, `too-far`. A browser `pointercancel` never counts.
+
+- `useDoubleTap` wires it to pointer events and re-arms on `visibilitychange`.
+- `usePanicGesture` adds the confirmation: `vibrate(hapticPatterns.confirm)` (35 ms);
+  when the device cannot vibrate (iPhone) — and always in the PC mockup — the face does a
+  barely visible blink (`animate-subtle-blink`, opacity dip to 0.72).
+- The watch view puts a `touch-manipulation` layer (`TouchSurface`) over the screen so the
+  browser never zooms on double tap.
+- PC only: `GestureDiagnostics` lists the last 6 touches and how they were interpreted
+  (Spanish labels in `gestureLabels.ts`, reused later by the practice view).
+- Automated browser clicks fire ~27 ms apart and are correctly rejected as `too-fast`;
+  test with real taps or dispatched PointerEvents with human timing.
+
 ## Settings store
 
 `features/settings/settingsStore.ts`: module-level store + `useSyncExternalStore`,
@@ -130,7 +152,7 @@ persisted in localStorage (`voz-segura:settings:v1`) through the safe helpers in
 1. ✅ Setup: repos, Vite + React + TS + Tailwind, structure, routes, docs
 2. ✅ Design system: tokens, typography, base components, watch mockup round/square
 3. ✅ Idle watch face, full-screen watch mode on phone, demo mode switch
-4. Double-tap detection (accidental-tap prevention) + discreet vibration
+4. ✅ Double-tap detection (accidental-tap prevention) + discreet vibration
 5. Active state: real audio + location, without revealing anything
 6. Settings: contacts, message, gesture practice, history
 7. Backend: alert endpoint, storage, AI transcription/summary, Vercel deploy
