@@ -1,9 +1,11 @@
 import { useSyncExternalStore } from 'react'
 import { config, isBackendConfigured } from '../../lib/config'
+import { getDeviceId } from '../../lib/deviceId'
 import { isNativeApp } from '../../lib/platform'
 import { getSettings } from '../settings/settingsStore'
 import { defaultCaptureOptions, type AlertCapture, type CaptureEvent, type StopReason } from './alertCapture'
 import { alertSessionReducer, initialAlertSession, type AlertAction, type AlertSession } from './alertSession'
+import { recordAlert } from './alertHistory'
 import { createDemoCapture } from './demoCapture'
 import { createNativeCapture } from './nativeCapture'
 import { createWebCapture } from './webCapture'
@@ -48,6 +50,7 @@ export function activateAlert(): void {
   // Demo mode never sends anything; real captures need the backend URL and token.
   const delivers = current.kind !== 'demo' && isBackendConfigured()
   dispatch({ type: 'activate', alertId, kind: current.kind, time: startedAt, delivers })
+  recordAlert({ alertId, startedAt, kind: current.kind, delivered: delivers })
 
   // Events from a previous alert's capture must not leak into this one.
   const onEvent = (event: CaptureEvent) => {
@@ -58,7 +61,10 @@ export function activateAlert(): void {
   // The Android service sends everything itself (JS pauses with the screen off); the
   // browser capture is wrapped so JS sends it.
   const listener = delivers && current.kind === 'web' ? withWebDelivery(alertId, startedAt, onEvent) : onEvent
-  const backend = delivers && current.kind === 'native' ? { apiBaseUrl: config.apiBaseUrl, apiToken: config.alertApiToken } : {}
+  const backend =
+    delivers && current.kind === 'native'
+      ? { apiBaseUrl: config.apiBaseUrl, apiToken: config.alertApiToken, deviceId: getDeviceId() }
+      : {}
   void current.start({ alertId, startedAt, ...defaultCaptureOptions, ...backend }, listener)
 
   // The native service enforces the limit itself (this JS may be paused with the screen off).
