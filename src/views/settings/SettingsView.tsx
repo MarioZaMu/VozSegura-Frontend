@@ -7,6 +7,7 @@ import { Switch } from '../../components/ui/Switch'
 import { updateSettings, useSettings } from '../../features/settings/settingsStore'
 import { isBackendConfigured } from '../../lib/config'
 import { isNativeApp } from '../../lib/platform'
+import { AlertControlSection } from './AlertControlSection'
 import { ContactsSection } from './ContactsSection'
 import { HistorySection } from './HistorySection'
 import { PermissionsSection } from './PermissionsSection'
@@ -36,6 +37,8 @@ export function SettingsView() {
             : 'Contactos, mensaje y permisos de tu alerta silenciosa.'}
         </p>
       </header>
+
+      <AlertControlSection />
 
       {backend ? (
         <>
@@ -69,7 +72,7 @@ export function SettingsView() {
 
       <Card raised className="flex flex-col gap-4">
         <p className="text-body-sm text-text-secondary">
-          En el reloj, haz <b className="text-text-primary">doble toque</b> para activar la alerta. Para volver aquí,{' '}
+          En el reloj, haz <b className="text-text-primary">doble toque</b> para activar la alerta y <b className="text-text-primary">triple toque</b> para detenerla. Para volver aquí,{' '}
           <b className="text-text-primary">mantén presionado el reloj 2 segundos</b>.
         </p>
         <Button size="lg" icon={<Watch size={20} />} onClick={goToWatch} fullWidth>
