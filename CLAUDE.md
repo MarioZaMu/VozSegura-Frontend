@@ -381,7 +381,8 @@ app navigation for real alerts; `/alerta/demo` keeps it for the presentation.
 ## Android app
 
 - appId `com.mariozamu.vozsegura`, name "Voz Segura", `webDir: dist` (`capacitor.config.ts`).
-- `MainActivity.java` hides status and navigation bars (immersive; swipe shows them
+- `MainActivity.java` hides status and navigation bars (edge to edge: every page but the
+  watch starts below the camera cutout with `pt-safe-top` in RootLayout; swipe shows them
   briefly). Manifest locks portrait. Launch screen and window background are black.
 - **Logo** (user-provided set): launcher PNGs per density in `mipmap-*`, adaptive icon
   (`mipmap-anydpi-v26`) with `drawable-nodpi/ic_launcher_logo.png` on `#0B0613` plus a

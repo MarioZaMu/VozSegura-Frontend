@@ -75,6 +75,8 @@
   --spacing: 0.25rem;
   --spacing-touch: 3rem;
   --spacing-gutter: 1rem;
+  /* Camera cutout / hidden status bar: the Android app draws edge to edge (pt-safe-top) */
+  --spacing-safe-top: env(safe-area-inset-top, 0px);
   --spacing-section: 2rem;
   /* 20rem on PC, shrinks on narrow screens so the mockup (case + crown) never overflows */
   --spacing-watch-screen: min(20rem, calc(100vw - 5rem));

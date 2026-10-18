@@ -23,10 +23,17 @@ export function RootLayout() {
   const contactAlert = useMatch(routes.contactAlert)
   const isRealContactAlert = contactAlert !== null && contactAlert.params.alertId !== 'demo'
 
-  if (isFullscreenWatch || isRealContactAlert) return <Outlet />
+  // Only the watch is meant to reach under the camera cutout; every other page starts below it.
+  if (isFullscreenWatch) return <Outlet />
+  if (isRealContactAlert)
+    return (
+      <div className="pt-safe-top">
+        <Outlet />
+      </div>
+    )
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col pt-safe-top">
       <nav className="flex shrink-0 justify-center gap-1 overflow-x-auto px-2 py-3 sm:gap-2 sm:p-4" aria-label={t.nav.label}>
         {navItems.map((item) => (
           <NavLink
