@@ -45,8 +45,8 @@ holds `sdk.dir`.
 ## Stack
 
 React 19 + Vite 8 + TypeScript 6 + Tailwind CSS v4 + React Router 8. Lint with oxlint,
-tests with Vitest. Android app with Capacitor 8 (`@capacitor/haptics`,
-`@capacitor-community/keep-awake`).
+tests with Vitest. Android app with Capacitor 8 (`@capacitor-community/keep-awake` + local
+`DiscreetHaptics` plugin).
 Deployed on Vercel (git integration; every push to `main` deploys). `vercel.json`
 rewrites every path to `index.html` so client routes survive a reload.
 
@@ -160,7 +160,7 @@ movement ≤12 px, contact ≤60 px (bigger = palm). Rejections with a reason:
 - `useDoubleTap` wires it to pointer events and re-arms on `visibilitychange`.
 - `usePanicGesture` adds the confirmation: `vibrate(hapticPatterns.confirm)` (80 ms; 35 ms
   was accepted but not felt on a real phone — motors need ~50 ms to spin up). `lib/haptics.ts`
-  uses `@capacitor/haptics` in the app and `navigator.vibrate` in the browser;
+  uses the local `DiscreetHaptics` plugin in the app and `navigator.vibrate` in the browser;
   when the device cannot vibrate (iPhone) — and always in the PC mockup — the face does a
   barely visible blink (`animate-subtle-blink`, opacity dip to 0.72).
 - The watch view puts a `touch-manipulation` layer (`TouchSurface`) over the screen so the
@@ -184,7 +184,13 @@ persisted in localStorage (`voz-segura:settings:v1`) through the safe helpers in
 - `MainActivity.java` hides status and navigation bars (immersive; swipe shows them
   briefly). Manifest locks portrait. Launch screen and window background are black; the
   launcher icon is a neutral watch face vector (`res/drawable/ic_launcher_watch.xml`).
+- **`DiscreetHapticsPlugin.java`** (local plugin, registered in `MainActivity`) vibrates
+  with `USAGE_ALARM`. Logcat on the user's Xiaomi showed both Chrome and
+  `@capacitor/haptics` vibrations (`USAGE=TOUCH`) ending `IGNORED_FOR_SETTINGS` because touch
+  vibration is off in the phone settings; a panic confirmation must not depend on that.
 - After web changes run `npm run android:sync` before building the APK.
+- Test phone: Redmi Note 13 Pro (23117RA68G, HyperOS). Logs:
+  `adb logcat | grep -iE "Capacitor|VibratorManagerService"`.
 - `@capacitor/cli` brings 3 moderate npm audit findings (dev-only tooling, not shipped).
 
 ## Phases
