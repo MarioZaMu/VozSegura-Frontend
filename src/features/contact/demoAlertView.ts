@@ -1,5 +1,6 @@
 import type { LocationFix, StopReason } from '../alert/alertCapture'
 import type { Resolution } from '../alert/alertHistory'
+import { getMessages, type Language } from '../../i18n/language'
 import type { AlertView, AlertViewChunk } from './alertView'
 
 // Simulated alert for /alerta/demo (classroom presentation), evolving in real time:
@@ -23,20 +24,6 @@ const TRANSCRIBE_DELAY_S = 6
 const SUMMARY_DELAY_S = 4
 /** Laura says "estoy bien" a little after the final summary. */
 const RESOLVED_AT_S = 135
-
-const transcripts = [
-  'Ya salí de clase, voy caminando hacia la estación. Hay un carro que lleva rato detrás de mí.',
-  '¿Qué necesita? No, no tengo nada. Por favor déjeme pasar.',
-  'Sigo caminando, el hombre se bajó del carro y me está siguiendo.',
-  'Estoy llegando a la calle 10, voy a entrar a la tienda de la esquina.',
-  'Ya estoy dentro de la tienda, le pedí ayuda al señor de la caja.',
-]
-
-const summaries = [
-  'Laura camina hacia la estación y nota un carro que la sigue.',
-  'Un hombre la aborda y ella le pide que la deje pasar; luego la sigue a pie. Se dirige a la calle 10.',
-  'Un hombre en carro siguió a Laura y la abordó en la calle. Ella se refugió en una tienda de la calle 10 y pidió ayuda; por ahora está acompañada.',
-]
 
 // A short walk through El Poblado, Medellín.
 const route: [number, number][] = [
@@ -75,9 +62,10 @@ function positionAt(seconds: number, startedAt: number): LocationFix {
   }
 }
 
-/** The demo alert as it looks `now`. */
-export function demoAlertView(timeline: DemoTimeline, now: number): AlertView {
+/** The demo alert as it looks `now`, with its texts in `language`. */
+export function demoAlertView(timeline: DemoTimeline, now: number, language: Language = 'es'): AlertView {
   const { startedAt } = timeline
+  const { owner, message, transcripts, summaries } = getMessages(language).demo
   const elapsed = Math.max(0, (now - startedAt) / 1000)
   const stopAtS = timeline.stoppedAt !== null ? (timeline.stoppedAt - startedAt) / 1000 : Infinity
   const stopped = elapsed >= stopAtS
@@ -110,8 +98,8 @@ export function demoAlertView(timeline: DemoTimeline, now: number): AlertView {
   return {
     id: 'demo',
     status: stopped ? 'stopped' : 'active',
-    ownerName: 'Laura',
-    message: 'Si recibes esto, llámame. Estoy saliendo de la universidad.',
+    ownerName: owner,
+    message,
     startedAt,
     stoppedAt: stopped ? timeline.stoppedAt : null,
     stopReason: stopped ? (timeline.stopReason ?? 'user') : null,
@@ -124,5 +112,6 @@ export function demoAlertView(timeline: DemoTimeline, now: number): AlertView {
     chunks,
     resolution: resolved ? timeline.resolution : null,
     resolvedAt: resolved ? timeline.resolvedAt : null,
+    language,
   }
 }

@@ -26,6 +26,7 @@ const view = (overrides: Partial<AlertView> = {}): AlertView => ({
   chunks: [chunk(0), chunk(1)],
   resolution: 'safe',
   resolvedAt: 150_000,
+  language: 'es',
   ...overrides,
 })
 
@@ -65,6 +66,12 @@ describe('formatting', () => {
     expect(formatAgo(10_000, 0)).toBe('hace 0 s')
   })
 
+  it('formats the elapsed time in English', () => {
+    expect(formatAgo(0, 5_000, 'en')).toBe('5 s ago')
+    expect(formatAgo(0, 26 * 3_600_000, 'en')).toBe('1 day ago')
+    expect(formatAgo(0, 50 * 3_600_000, 'en')).toBe('2 days ago')
+  })
+
   it('formats durations and chunk ranges', () => {
     expect(formatDuration(187_000)).toBe('3:07')
     expect(chunkRange([chunk(0), chunk(1, { durationMs: 15_000 })], 1)).toBe('0:20 – 0:35')
@@ -75,5 +82,6 @@ describe('formatting', () => {
     expect(isAlertId('demo')).toBe(false)
     expect(ownerLabel({ ownerName: '  ' })).toBe('Tu contacto')
     expect(ownerLabel({ ownerName: 'Laura' })).toBe('Laura')
+    expect(ownerLabel({ ownerName: '' }, 'en')).toBe('Your contact')
   })
 })

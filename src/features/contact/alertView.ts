@@ -1,5 +1,6 @@
 // What the trusted contact sees: the public alert data from GET /api/alert?id=…, plus pure
 // helpers to describe it. Framework-free so it is unit tested (alertView.test.ts).
+import { getMessages, isLanguage, type Language } from '../../i18n/language'
 import { config } from '../../lib/config'
 import type { LocationFix } from '../alert/alertCapture'
 import type { Resolution } from '../alert/alertHistory'
@@ -34,9 +35,12 @@ export type AlertView = {
   /** Set when the owner says "estoy bien" or that it was a false alarm. */
   resolution: Resolution | null
   resolvedAt: number | null
+  /** Language of the person who raised it: the contact view and messages use it. */
+  language: Language
 }
 
-type AlertResponse = Omit<AlertView, 'chunks'> & {
+type AlertResponse = Omit<AlertView, 'chunks' | 'language'> & {
+  language?: string
   chunks: (Omit<AlertViewChunk, 'audioUrl'> & { audioPath: string })[]
 }
 
@@ -58,6 +62,8 @@ export async function fetchAlertView(id: string): Promise<AlertView> {
     message: data.message ?? '',
     resolution: data.resolution ?? null,
     resolvedAt: data.resolvedAt ?? null,
+    // Alerts from before phase 12 have no language: they were all Spanish.
+    language: isLanguage(data.language) ? data.language : 'es',
     chunks: [...data.chunks]
       .sort((a, b) => a.index - b.index)
       .map(({ audioPath, ...chunk }) => ({ ...chunk, audioUrl: `${config.apiBaseUrl}${audioPath}` })),
@@ -86,16 +92,16 @@ export function isFinal(view: AlertView, now: number): boolean {
   return view.chunks.length === 0 && view.stoppedAt !== null && now - view.stoppedAt > NO_AUDIO_GRACE_MS
 }
 
-/** "hace 5 s", "hace 3 min", "hace 2 h" */
-export function formatAgo(time: number, now: number): string {
+/** "hace 5 s", "hace 3 min", "hace 2 h" / "5 s ago"… */
+export function formatAgo(time: number, now: number, language: Language = 'es'): string {
+  const { ago } = getMessages(language).time
   const seconds = Math.max(0, Math.round((now - time) / 1000))
-  if (seconds < 60) return `hace ${seconds} s`
+  if (seconds < 60) return ago(seconds, 's')
   const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `hace ${minutes} min`
+  if (minutes < 60) return ago(minutes, 'min')
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `hace ${hours} h`
-  const days = Math.floor(hours / 24)
-  return `hace ${days} día${days === 1 ? '' : 's'}`
+  if (hours < 24) return ago(hours, 'h')
+  return ago(Math.floor(hours / 24), 'd')
 }
 
 /** "3:07" (minutes:seconds) */
@@ -123,6 +129,6 @@ export function directionsUrl(fix: LocationFix): string {
 }
 
 /** Who raised it, for headings: the saved name or a neutral fallback. */
-export function ownerLabel(view: Pick<AlertView, 'ownerName'>): string {
-  return view.ownerName.trim() || 'Tu contacto'
+export function ownerLabel(view: Pick<AlertView, 'ownerName'>, language: Language = 'es'): string {
+  return view.ownerName.trim() || getMessages(language).contact.fallbackOwner
 }
