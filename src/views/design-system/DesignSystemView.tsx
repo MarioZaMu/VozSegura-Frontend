@@ -2,6 +2,7 @@ import { Bell, MapPin, Mic, ShieldCheck, Trash2, X } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
+import { Logo } from '../../components/ui/Logo'
 import { ProgressRing } from '../../components/ui/ProgressRing'
 import { SegmentedControl } from '../../components/ui/SegmentedControl'
 import { WatchDevice } from '../../components/watch/WatchDevice'
@@ -18,6 +19,8 @@ const brandColors: ColorToken[] = [
   { name: 'Texto principal', hex: '#FFFFFF', swatch: 'bg-text-primary' },
   { name: 'Texto secundario', hex: '#9A93A8', swatch: 'bg-text-secondary' },
   { name: 'Peligro', hex: '#E53935', swatch: 'bg-danger' },
+  { name: 'Éxito', hex: '#4ADE80', swatch: 'bg-success' },
+  { name: 'Aviso', hex: '#FBBF24', swatch: 'bg-warning' },
 ]
 
 const watchColors: ColorToken[] = [
@@ -79,6 +82,14 @@ export function DesignSystemView() {
           Tokens y componentes base. Los acentos fuertes solo se usan en Configuración y Contacto.
         </p>
       </header>
+
+      <Section title="Logo">
+        <div className="flex flex-wrap items-center gap-6 rounded-lg bg-surface p-6">
+          <Logo />
+          <Logo variant="mark" />
+          <img src="/icon-192.png" alt="Ícono de la app" className="size-16 rounded-lg" />
+        </div>
+      </Section>
 
       <Section title="Color · marca">
         <Swatches colors={brandColors} />
