@@ -363,6 +363,9 @@ app navigation for real alerts; `/alerta/demo` keeps it for the presentation.
   Spanish; `getMessages`, `localeOf`), `currentLanguage.ts` reads the settings store
   (`getLanguage()` for non-React code, `startLanguage()` keeps `<html lang>`), `useT()` /
   `useLanguage()` for components. `LanguageProvider` overrides the language for a subtree.
+- **Quick language button:** `app/LanguageToggle.tsx` at the end of the top bar (every page but
+  the full-screen watch and a real contact alert) switches Spanish ⇄ English in one tap and
+  shows the language it switches to ("EN" on a Spanish screen). "System" stays in Appearance.
   Pure helpers take the language as a parameter with 'es' as default (tests stay simple).
 - **Dates and numbers:** `lib/formatDate.ts` caches formatters per language (es-CO /
   en-US, 24 h in both); the watch date is "sáb 17 oct" / "Sat Oct 17".

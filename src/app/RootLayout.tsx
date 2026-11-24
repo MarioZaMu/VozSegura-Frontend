@@ -2,6 +2,7 @@ import { NavLink, Outlet, useMatch } from 'react-router'
 import { useWatchDisplayMode } from '../features/watch/useWatchDisplayMode'
 import { useT } from '../i18n/useT'
 import { isNativeApp } from '../lib/platform'
+import { LanguageToggle } from './LanguageToggle'
 import { buildContactAlertPath, routes } from './routes'
 
 const allNavItems = [
@@ -48,6 +49,7 @@ export function RootLayout() {
             {t.nav[item.label]}
           </NavLink>
         ))}
+        <LanguageToggle />
       </nav>
       <div className="flex-1">
         <Outlet />

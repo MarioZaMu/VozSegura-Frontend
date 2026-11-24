@@ -10,6 +10,7 @@ export const en: Messages = {
     appearance: 'Appearance',
     contact: 'Contact',
     design: 'Design',
+    switchLanguage: 'Switch the language to Spanish',
   },
   notFound: {
     title: 'Page not found',

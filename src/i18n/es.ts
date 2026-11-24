@@ -11,6 +11,7 @@ export const es = {
     appearance: 'Apariencia',
     contact: 'Contacto',
     design: 'Diseño',
+    switchLanguage: 'Cambiar el idioma a inglés',
   },
   notFound: {
     title: 'Página no encontrada',
